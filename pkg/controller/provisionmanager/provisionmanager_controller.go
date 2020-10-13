@@ -331,6 +331,9 @@ func (r *ReconcileProvisionManager) Reconcile(request reconcile.Request) (reconc
 			volumeMountList = append(volumeMountList, volumeMount)
 			(&statefulSet.Spec.Template.Spec.Containers[idx]).VolumeMounts = volumeMountList
 			(&statefulSet.Spec.Template.Spec.Containers[idx]).Image = instanceContainer.Image
+			(&statefulSet.Spec.Template.Spec.Containers[idx]).Env = []corev1.EnvVar{
+				{Name: "PROVISION_MANAGER_NAME", Value: request.Name + "-" + instanceType},
+			}
 		}
 	}
 

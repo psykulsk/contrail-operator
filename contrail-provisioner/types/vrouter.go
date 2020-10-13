@@ -100,7 +100,7 @@ func (c *VrouterNode) Delete(contrailClient ApiClient) error {
 // EnsureVMIVhost0InterfaceForVirtualRouters checks whether each VirtualRouter
 // instance has a "vhost0" VirtualMachineInterface assigned to it and creates
 // any missing VirtualMachineInterfaces
-func EnsureVMIVhost0InterfaceForVirtualRouters(contrailClient ApiClient) error {
+func EnsureVMIVhost0InterfaceForVirtualRouters(contrailClient ApiClient, provisionManagerName string) error {
 	virtualRouterList, err := contrailClient.List(virtualRouterType)
 	if err != nil {
 		return err
@@ -111,6 +111,10 @@ func EnsureVMIVhost0InterfaceForVirtualRouters(contrailClient ApiClient) error {
 			return err
 		}
 		typedVirtualRouter := obj.(*contrailTypes.VirtualRouter)
+		if !IsManagedByMe(){
+			continue
+		}
+		
 
 		vhost0VMIPresent, err := vhost0VMIPresent(typedVirtualRouter, contrailClient)
 		if err != nil {

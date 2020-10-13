@@ -121,6 +121,8 @@ func check(err error) {
 	}
 }
 
+const PROVISION_MANAGER_NAME_ENV_KEY string = "PROVISION_MANAGER_NAME"
+
 func main() {
 
 	controlNodesPtr := flag.String("controlNodes", "/provision.yaml", "path to control nodes yaml file")
@@ -133,6 +135,11 @@ func main() {
 	globalVrouterConfPtr := flag.String("globalVrouterConf", "/provision.yaml", "path to global vrouter configuration file")
 	modePtr := flag.String("mode", "watch", "watch/run")
 	flag.Parse()
+
+	provisionManagerName := os.Getenv(PROVISION_MANAGER_NAME_ENV_KEY)
+	if len(provisionManagerName) == 0 {
+		provisionManagerName = "contrail-provisioner"
+	}
 
 	if *modePtr == "watch" {
 
@@ -240,7 +247,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
 				} else if os.IsNotExist(err) {
-					vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
+					vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{}, provisionManagerName)
 				}
 			})
 			check(err)

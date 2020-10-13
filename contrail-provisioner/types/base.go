@@ -23,3 +23,13 @@ type ApiClient interface {
 	contrail.ApiClient
 	ReadListResult(string, *contrail.ListResult) (contrail.IObject, error)
 }
+
+func IsManagedByMe(annotations contrailTypes.KeyValuePairs, provisionManagerName string) bool {
+	managedByMe := false
+	for _, annotation := range annotations {
+		if annotation.Key == "managed_by" && annotation.Value == provisionManagerName {
+			managedByMe = true
+		}
+	}
+	return managedByMe
+}
