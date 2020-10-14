@@ -22,7 +22,7 @@ const (
 )
 
 // Create creates a VirtualRouter instance
-func (c *VrouterNode) Create(contrailClient ApiClient) error {
+func (c *VrouterNode) Create(contrailClient ApiClient, provisionManagerName string) error {
 	gscObjects := []*contrailTypes.GlobalSystemConfig{}
 	gscObjectsList, err := contrailClient.List("global-system-config")
 	if err != nil {
@@ -45,6 +45,7 @@ func (c *VrouterNode) Create(contrailClient ApiClient) error {
 		vncNode.SetVirtualRouterIpAddress(c.IPAddress)
 		vncNode.SetParent(gsc)
 		vncNode.SetName(c.Hostname)
+		vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 		if err := contrailClient.Create(vncNode); err != nil {
 			return err
 		}
@@ -111,17 +112,16 @@ func EnsureVMIVhost0InterfaceForVirtualRouters(contrailClient ApiClient, provisi
 			return err
 		}
 		typedVirtualRouter := obj.(*contrailTypes.VirtualRouter)
-		if !IsManagedByMe(){
+		if !IsManagedByMe(typedVirtualRouter.GetAnnotations().KeyValuePair, provisionManagerName) {
 			continue
 		}
-		
 
 		vhost0VMIPresent, err := vhost0VMIPresent(typedVirtualRouter, contrailClient)
 		if err != nil {
 			return err
 		}
 		if !vhost0VMIPresent {
-			if err = createVhost0VMI(typedVirtualRouter, contrailClient); err != nil {
+			if err = createVhost0VMI(typedVirtualRouter, contrailClient, provisionManagerName); err != nil {
 				return err
 			}
 		}
@@ -146,7 +146,7 @@ func vhost0VMIPresent(virtualRouter *contrailTypes.VirtualRouter, contrailClient
 	return false, nil
 }
 
-func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient ApiClient) error {
+func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient ApiClient, provisionManagerName string) error {
 	network, err := contrailTypes.VirtualNetworkByName(contrailClient, ipFabricNetworkFQName)
 	if err != nil {
 		return err
@@ -157,6 +157,7 @@ func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient 
 	vncVMI.SetVirtualNetworkList([]contrail.ReferencePair{{Object: network}})
 	vncVMI.SetVirtualMachineInterfaceDisablePolicy(false)
 	vncVMI.SetName(vhost0VMIName)
+	vncVMI.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 	if err = contrailClient.Create(vncVMI); err != nil {
 		return err
 	}

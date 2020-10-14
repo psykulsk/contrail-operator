@@ -27,21 +27,21 @@ type NodeWithAction struct {
 // VirtualMachineInterface objects in Contrail Api Server based on the
 // list of requiredNodes and current objects in the Api Server
 func ReconcileVrouterNodes(contrailClient types.ApiClient, requiredNodes []*types.VrouterNode, provisionManagerName string) error {
-	nodesInApiServer, err := getVrouterNodesInApiServer(contrailClient)
+	nodesInApiServer, err := getVrouterNodesInApiServer(contrailClient, provisionManagerName)
 	if err != nil {
 		return err
 	}
 	actionMap := createVrouterNodesActionMap(nodesInApiServer, requiredNodes)
-	if err = executeActionMap(actionMap, contrailClient); err != nil {
+	if err = executeActionMap(actionMap, contrailClient, provisionManagerName); err != nil {
 		return err
 	}
-	if err = types.EnsureVMIVhost0InterfaceForVirtualRouters(contrailClient); err != nil {
+	if err = types.EnsureVMIVhost0InterfaceForVirtualRouters(contrailClient, provisionManagerName); err != nil {
 		return err
 	}
 	return nil
 }
 
-func getVrouterNodesInApiServer(contrailClient types.ApiClient) ([]*types.VrouterNode, error) {
+func getVrouterNodesInApiServer(contrailClient types.ApiClient, provisionManagerName string) ([]*types.VrouterNode, error) {
 	nodesInApiServer := []*types.VrouterNode{}
 	vncNodeList, err := contrailClient.List(nodeType)
 	if err != nil {
@@ -53,6 +53,9 @@ func getVrouterNodesInApiServer(contrailClient types.ApiClient) ([]*types.Vroute
 			return nodesInApiServer, err
 		}
 		typedNode := obj.(*contrailTypes.VirtualRouter)
+		if !types.IsManagedByMe(typedNode.GetAnnotations().KeyValuePair, provisionManagerName) {
+			continue
+		}
 
 		node := &types.VrouterNode{
 			IPAddress: typedNode.GetVirtualRouterIpAddress(),
@@ -89,7 +92,7 @@ func createVrouterNodesActionMap(nodesInApiServer []*types.VrouterNode, required
 	return actionMap
 }
 
-func executeActionMap(actionMap map[string]NodeWithAction, contrailClient types.ApiClient) error {
+func executeActionMap(actionMap map[string]NodeWithAction, contrailClient types.ApiClient, provisionManagerName string) error {
 	for _, nodeWithAction := range actionMap {
 		var err error
 		switch nodeWithAction.action {
@@ -98,7 +101,7 @@ func executeActionMap(actionMap map[string]NodeWithAction, contrailClient types.
 			err = nodeWithAction.node.Update(contrailClient)
 		case createAction:
 			fmt.Println("creating vrouter node ", nodeWithAction.node.Hostname)
-			err = nodeWithAction.node.Create(contrailClient)
+			err = nodeWithAction.node.Create(contrailClient, provisionManagerName)
 		case deleteAction:
 			fmt.Println("deleting vrouter node ", nodeWithAction.node.Hostname)
 			err = nodeWithAction.node.Delete(contrailClient)

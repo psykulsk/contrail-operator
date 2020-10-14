@@ -6,6 +6,10 @@ import (
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 )
 
+const (
+	managedByAnnotationKey = "managed_by"
+)
+
 // Nodes struct defines all Contrail node types
 type Nodes struct {
 	ControlNodes   []*ControlNode             `yaml:"controlNodes,omitempty"`
@@ -24,12 +28,20 @@ type ApiClient interface {
 	ReadListResult(string, *contrail.ListResult) (contrail.IObject, error)
 }
 
-func IsManagedByMe(annotations contrailTypes.KeyValuePairs, provisionManagerName string) bool {
+func IsManagedByMe(annotations []contrailTypes.KeyValuePair, provisionManagerName string) bool {
 	managedByMe := false
 	for _, annotation := range annotations {
-		if annotation.Key == "managed_by" && annotation.Value == provisionManagerName {
+		if annotation.Key == managedByAnnotationKey && annotation.Value == provisionManagerName {
 			managedByMe = true
 		}
 	}
 	return managedByMe
+}
+
+func GetManagedByMeAnnotation(provisionManagerName string) *contrailTypes.KeyValuePairs {
+	return &contrailTypes.KeyValuePairs{
+		KeyValuePair: []contrailTypes.KeyValuePair{
+			{Key: managedByAnnotationKey, Value: provisionManagerName},
+		},
+	}
 }
