@@ -13,12 +13,13 @@ type DatabaseNode struct {
 }
 
 // Create creates a DatabaseNode instance
-func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.DatabaseNode{}
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetDatabaseNodeIpAddress(node.IPAddress)
+			vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 			err := contrailClient.Create(vncNode)
 			if err != nil {
 				return err
@@ -29,7 +30,7 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 }
 
 // Update updates a DatabaseNode instance
-func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("database-node")
@@ -45,6 +46,7 @@ func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrai
 				if typedNode.GetName() == nodeName {
 					typedNode.SetFQName("", []string{"default-global-system-config", nodeName})
 					typedNode.SetDatabaseNodeIpAddress(node.IPAddress)
+					typedNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 					err := contrailClient.Update(typedNode)
 					if err != nil {
 						return err

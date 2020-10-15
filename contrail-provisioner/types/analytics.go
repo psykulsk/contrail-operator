@@ -13,12 +13,13 @@ type AnalyticsNode struct {
 }
 
 // Create creates a AnalyticsNode instance
-func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.AnalyticsNode{}
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetAnalyticsNodeIpAddress(node.IPAddress)
+			vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 			err := contrailClient.Create(vncNode)
 			if err != nil {
 				return err
@@ -29,7 +30,7 @@ func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contr
 }
 
 // Update updates a AnalyticsNode instance
-func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("analytics-node")
@@ -45,6 +46,7 @@ func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contr
 				if typedNode.GetName() == nodeName {
 					typedNode.SetFQName("", []string{"default-global-system-config", nodeName})
 					typedNode.SetAnalyticsNodeIpAddress(node.IPAddress)
+					typedNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 					err := contrailClient.Update(typedNode)
 					if err != nil {
 						return err

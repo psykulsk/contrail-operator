@@ -13,6 +13,7 @@ import (
 )
 
 func TestGetVrouterNodesInApiServerCreatesVrouterNodeObjects(t *testing.T) {
+	provisionManagerName := "contrail-provisioner"
 	fakeContrailClient := fake.GetDefaultFakeContrailClient()
 	fakeContrailClient.ListFake = func(string) ([]contrail.ListResult, error) {
 		return []contrail.ListResult{{}, {}}, nil
@@ -20,6 +21,7 @@ func TestGetVrouterNodesInApiServerCreatesVrouterNodeObjects(t *testing.T) {
 	virtualRouterOne := contrailTypes.VirtualRouter{}
 	virtualRouterOne.SetVirtualRouterIpAddress("1.1.1.1")
 	virtualRouterOne.SetName("virtual-router-one")
+	virtualRouterOne.SetAnnotations(types.GetManagedByMeAnnotation(provisionManagerName))
 	fakeContrailClient.ReadListResultFake = func(string, *contrail.ListResult) (contrail.IObject, error) {
 		return &virtualRouterOne, nil
 	}
@@ -28,7 +30,7 @@ func TestGetVrouterNodesInApiServerCreatesVrouterNodeObjects(t *testing.T) {
 		{IPAddress: "1.1.1.1", Hostname: "virtual-router-one"},
 		{IPAddress: "1.1.1.1", Hostname: "virtual-router-one"},
 	}
-	actualVirtualRouterNodes, err := getVrouterNodesInApiServer(fakeContrailClient)
+	actualVirtualRouterNodes, err := getVrouterNodesInApiServer(fakeContrailClient, provisionManagerName)
 
 	assert.NoError(t, err)
 	assert.Len(t, actualVirtualRouterNodes, len(expectedVirtualRouterNodes))
@@ -38,6 +40,7 @@ func TestGetVrouterNodesInApiServerCreatesVrouterNodeObjects(t *testing.T) {
 }
 
 func TestGetVrouterNodesInApiServerReturnsEmptyListWhenNoNodesInApiServer(t *testing.T) {
+	provisionManagerName := "contrail-provisioner"
 	fakeContrailClient := fake.GetDefaultFakeContrailClient()
 	fakeContrailClient.ListFake = func(string) ([]contrail.ListResult, error) {
 		return []contrail.ListResult{}, nil
@@ -45,11 +48,12 @@ func TestGetVrouterNodesInApiServerReturnsEmptyListWhenNoNodesInApiServer(t *tes
 	virtualRouterOne := contrailTypes.VirtualRouter{}
 	virtualRouterOne.SetVirtualRouterIpAddress("1.1.1.1")
 	virtualRouterOne.SetName("virtual-router-one")
+	virtualRouterOne.SetAnnotations(types.GetManagedByMeAnnotation(provisionManagerName))
 	fakeContrailClient.ReadListResultFake = func(string, *contrail.ListResult) (contrail.IObject, error) {
 		return &virtualRouterOne, nil
 	}
 
-	actualVirtualRouterNodes, err := getVrouterNodesInApiServer(fakeContrailClient)
+	actualVirtualRouterNodes, err := getVrouterNodesInApiServer(fakeContrailClient, provisionManagerName)
 
 	assert.NoError(t, err)
 	assert.Len(t, actualVirtualRouterNodes, 0)

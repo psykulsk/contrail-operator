@@ -17,12 +17,13 @@ type ControlNode struct {
 }
 
 // Create creates a ControlNode instance
-func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.BgpRouter{}
 			vncNode.SetFQName("", []string{"default-domain", "default-project", "ip-fabric", "__default__", nodeName})
 			vncNode.SetName(nodeName)
+			vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 			bgpParameters := &contrailTypes.BgpRouterParams{
 				Address:          node.IPAddress,
 				AutonomousSystem: node.ASN,
@@ -134,7 +135,7 @@ func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailC
 }
 
 // Update updates a ControlNode instance
-func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("bgp-router")
@@ -163,6 +164,7 @@ func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailC
 						},
 					}
 					typedNode.SetBgpRouterParameters(bgpParameters)
+					typedNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 					err := contrailClient.Update(typedNode)
 					if err != nil {
 						return err
