@@ -103,6 +103,13 @@ func executeActionMap(actionMap map[string]NodeWithAction, contrailClient types.
 		if err != nil {
 			return err
 		}
+		// Ensure that all non-deleted vrouter nodes have their
+		// respective vhost0 virtual-machine-interfaces created
+		if nodeWithAction.action != deleteAction {
+			if err := nodeWithAction.node.EnsureVMIVhost0Interface(contrailClient); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

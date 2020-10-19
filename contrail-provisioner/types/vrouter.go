@@ -53,9 +53,6 @@ func (c *VrouterNode) Create(contrailClient ApiClient) error {
 		if err := contrailClient.Create(virtualRouter); err != nil {
 			return err
 		}
-		if err := ensureVMIVhost0Interface(contrailClient, virtualRouter); err != nil {
-			return err
-		}
 		return nil
 	}
 	return nil
@@ -75,9 +72,6 @@ func (c *VrouterNode) Update(contrailClient ApiClient) error {
 	}
 	virtualRouter.SetVirtualRouterIpAddress(c.IPAddress)
 	if err := contrailClient.Update(virtualRouter); err != nil {
-		return err
-	}
-	if err := ensureVMIVhost0Interface(contrailClient, virtualRouter); err != nil {
 		return err
 	}
 	return nil
@@ -101,6 +95,20 @@ func (c *VrouterNode) Delete(contrailClient ApiClient) error {
 		return err
 	}
 	return nil
+}
+
+func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient ApiClient) error {
+	obj, err := GetContrailObjectByName(contrailClient, virtualRouterType, c.Hostname)
+	if err != nil {
+		return err
+	}
+	virtualRouter := obj.(*contrailTypes.VirtualRouter)
+	if !HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+		fmt.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations." +
+			" contrail-provisioner should not modify it. Skipping")
+		return nil
+	}
+	return ensureVMIVhost0Interface(contrailClient, virtualRouter)
 }
 
 // EnsureVMIVhost0Interface checks whether the VirtualRouter
