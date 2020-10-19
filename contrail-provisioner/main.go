@@ -60,7 +60,7 @@ type GlobalVrouterConfiguration struct {
 	VxlanNetworkIdentifierMode string                   `json:"vxlanNetworkIdentifierMode,omitempty"`
 }
 
-func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Client, provisionManagerName string) {
+func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Client) {
 	fmt.Printf("%s %s updated\n", nodeType, *nodesPtr)
 	nodeYaml, err := ioutil.ReadFile(*nodesPtr)
 	if err != nil {
@@ -121,8 +121,6 @@ func check(err error) {
 	}
 }
 
-const PROVISION_MANAGER_NAME_ENV_KEY string = "PROVISION_MANAGER_NAME"
-
 func main() {
 
 	controlNodesPtr := flag.String("controlNodes", "/provision.yaml", "path to control nodes yaml file")
@@ -135,11 +133,6 @@ func main() {
 	globalVrouterConfPtr := flag.String("globalVrouterConf", "/provision.yaml", "path to global vrouter configuration file")
 	modePtr := flag.String("mode", "watch", "watch/run")
 	flag.Parse()
-
-	provisionManagerName := os.Getenv(PROVISION_MANAGER_NAME_ENV_KEY)
-	if len(provisionManagerName) == 0 {
-		provisionManagerName = "contrail-provisioner"
-	}
 
 	if *modePtr == "watch" {
 
@@ -207,7 +200,7 @@ func main() {
 			fmt.Println("initial control node run")
 			_, err := os.Stat(*controlNodesPtr)
 			if !os.IsNotExist(err) {
-				nodeManager(controlNodesPtr, "control", contrailClient, provisionManagerName)
+				nodeManager(controlNodesPtr, "control", contrailClient)
 			} else if os.IsNotExist(err) {
 				controlNodes(contrailClient, []*types.ControlNode{})
 			}
@@ -218,7 +211,7 @@ func main() {
 				fmt.Println("control node event")
 				_, err := os.Stat(*controlNodesPtr)
 				if !os.IsNotExist(err) {
-					nodeManager(controlNodesPtr, "control", contrailClient, provisionManagerName)
+					nodeManager(controlNodesPtr, "control", contrailClient)
 				} else if os.IsNotExist(err) {
 					controlNodes(contrailClient, []*types.ControlNode{})
 				}
@@ -234,7 +227,7 @@ func main() {
 			fmt.Println("initial vrouter node run")
 			_, err := os.Stat(*vrouterNodesPtr)
 			if !os.IsNotExist(err) {
-				nodeManager(vrouterNodesPtr, "vrouter", contrailClient, provisionManagerName)
+				nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
 			} else if os.IsNotExist(err) {
 				vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
 			}
@@ -245,7 +238,7 @@ func main() {
 				fmt.Println("vrouter node event")
 				_, err := os.Stat(*vrouterNodesPtr)
 				if !os.IsNotExist(err) {
-					nodeManager(vrouterNodesPtr, "vrouter", contrailClient, provisionManagerName)
+					nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
 				} else if os.IsNotExist(err) {
 					vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
 				}
@@ -261,7 +254,7 @@ func main() {
 			fmt.Println("initial analytics node run")
 			_, err := os.Stat(*analyticsNodesPtr)
 			if !os.IsNotExist(err) {
-				nodeManager(analyticsNodesPtr, "analytics", contrailClient, provisionManagerName)
+				nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 			} else if os.IsNotExist(err) {
 				analyticsNodes(contrailClient, []*types.AnalyticsNode{})
 			}
@@ -272,7 +265,7 @@ func main() {
 				fmt.Println("analytics node event")
 				_, err := os.Stat(*analyticsNodesPtr)
 				if !os.IsNotExist(err) {
-					nodeManager(analyticsNodesPtr, "analytics", contrailClient, provisionManagerName)
+					nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 				} else if os.IsNotExist(err) {
 					analyticsNodes(contrailClient, []*types.AnalyticsNode{})
 				}
@@ -288,7 +281,7 @@ func main() {
 			fmt.Println("initial config node run")
 			_, err := os.Stat(*configNodesPtr)
 			if !os.IsNotExist(err) {
-				nodeManager(configNodesPtr, "config", contrailClient, provisionManagerName)
+				nodeManager(configNodesPtr, "config", contrailClient)
 			} else if os.IsNotExist(err) {
 				configNodes(contrailClient, []*types.ConfigNode{})
 			}
@@ -299,7 +292,7 @@ func main() {
 				fmt.Println("config node event")
 				_, err := os.Stat(*configNodesPtr)
 				if !os.IsNotExist(err) {
-					nodeManager(configNodesPtr, "config", contrailClient, provisionManagerName)
+					nodeManager(configNodesPtr, "config", contrailClient)
 				} else if os.IsNotExist(err) {
 					configNodes(contrailClient, []*types.ConfigNode{})
 				}
@@ -315,7 +308,7 @@ func main() {
 			fmt.Println("initial database node run")
 			_, err := os.Stat(*databaseNodesPtr)
 			if !os.IsNotExist(err) {
-				nodeManager(databaseNodesPtr, "database", contrailClient, provisionManagerName)
+				nodeManager(databaseNodesPtr, "database", contrailClient)
 			} else if os.IsNotExist(err) {
 				databaseNodes(contrailClient, []*types.DatabaseNode{})
 			}
@@ -326,7 +319,7 @@ func main() {
 				fmt.Println("database node event")
 				_, err := os.Stat(*databaseNodesPtr)
 				if !os.IsNotExist(err) {
-					nodeManager(databaseNodesPtr, "database", contrailClient, provisionManagerName)
+					nodeManager(databaseNodesPtr, "database", contrailClient)
 				} else if os.IsNotExist(err) {
 					databaseNodes(contrailClient, []*types.DatabaseNode{})
 				}
