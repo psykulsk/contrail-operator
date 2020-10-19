@@ -18,7 +18,7 @@ type ControlNode struct {
 }
 
 // Create creates a ControlNode instance
-func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
+func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.BgpRouter{}
@@ -139,7 +139,7 @@ func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailC
 }
 
 // Update updates a ControlNode instance
-func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
+func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("bgp-router")

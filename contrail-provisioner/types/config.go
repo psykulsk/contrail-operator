@@ -14,7 +14,7 @@ type ConfigNode struct {
 }
 
 // Create creates a ConfigNode instance
-func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
+func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailClient *contrail.Client) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.ConfigNode{}
@@ -34,7 +34,7 @@ func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailCli
 }
 
 // Update updates a ConfigNode instance
-func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
+func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailClient *contrail.Client) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("config-node")

@@ -73,7 +73,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = controlNodes(contrailClient, nodeList, provisionManagerName); err != nil {
+		if err = controlNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "analytics":
@@ -82,7 +82,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = analyticsNodes(contrailClient, nodeList, provisionManagerName); err != nil {
+		if err = analyticsNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "config":
@@ -91,7 +91,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = configNodes(contrailClient, nodeList, provisionManagerName); err != nil {
+		if err = configNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "vrouter":
@@ -109,7 +109,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = databaseNodes(contrailClient, nodeList, provisionManagerName); err != nil {
+		if err = databaseNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	}
@@ -160,7 +160,7 @@ func main() {
 
 		var contrailClient *contrail.Client
 		err = retry(5, 10*time.Second, func() (err error) {
-			contrailClient, err = getAPIClient(&apiServer, keystoneAuthParameters, provisionManagerName)
+			contrailClient, err = getAPIClient(&apiServer, keystoneAuthParameters)
 			return
 
 		})
@@ -209,7 +209,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(controlNodesPtr, "control", contrailClient, provisionManagerName)
 			} else if os.IsNotExist(err) {
-				controlNodes(contrailClient, []*types.ControlNode{}, provisionManagerName)
+				controlNodes(contrailClient, []*types.ControlNode{})
 			}
 			fmt.Println("setting up control node watcher")
 			watchFile := strings.Split(*controlNodesPtr, "/")
@@ -220,7 +220,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(controlNodesPtr, "control", contrailClient, provisionManagerName)
 				} else if os.IsNotExist(err) {
-					controlNodes(contrailClient, []*types.ControlNode{}, provisionManagerName)
+					controlNodes(contrailClient, []*types.ControlNode{})
 				}
 			})
 			check(err)
@@ -263,7 +263,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(analyticsNodesPtr, "analytics", contrailClient, provisionManagerName)
 			} else if os.IsNotExist(err) {
-				analyticsNodes(contrailClient, []*types.AnalyticsNode{}, provisionManagerName)
+				analyticsNodes(contrailClient, []*types.AnalyticsNode{})
 			}
 			fmt.Println("setting up analytics node watcher")
 			watchFile := strings.Split(*analyticsNodesPtr, "/")
@@ -274,7 +274,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(analyticsNodesPtr, "analytics", contrailClient, provisionManagerName)
 				} else if os.IsNotExist(err) {
-					analyticsNodes(contrailClient, []*types.AnalyticsNode{}, provisionManagerName)
+					analyticsNodes(contrailClient, []*types.AnalyticsNode{})
 				}
 			})
 			check(err)
@@ -290,7 +290,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(configNodesPtr, "config", contrailClient, provisionManagerName)
 			} else if os.IsNotExist(err) {
-				configNodes(contrailClient, []*types.ConfigNode{}, provisionManagerName)
+				configNodes(contrailClient, []*types.ConfigNode{})
 			}
 			fmt.Println("setting up config node watcher")
 			watchFile := strings.Split(*configNodesPtr, "/")
@@ -301,7 +301,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(configNodesPtr, "config", contrailClient, provisionManagerName)
 				} else if os.IsNotExist(err) {
-					configNodes(contrailClient, []*types.ConfigNode{}, provisionManagerName)
+					configNodes(contrailClient, []*types.ConfigNode{})
 				}
 			})
 			check(err)
@@ -317,7 +317,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(databaseNodesPtr, "database", contrailClient, provisionManagerName)
 			} else if os.IsNotExist(err) {
-				databaseNodes(contrailClient, []*types.DatabaseNode{}, provisionManagerName)
+				databaseNodes(contrailClient, []*types.DatabaseNode{})
 			}
 			fmt.Println("setting up database node watcher")
 			watchFile := strings.Split(*databaseNodesPtr, "/")
@@ -328,7 +328,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(databaseNodesPtr, "database", contrailClient, provisionManagerName)
 				} else if os.IsNotExist(err) {
-					databaseNodes(contrailClient, []*types.DatabaseNode{}, provisionManagerName)
+					databaseNodes(contrailClient, []*types.DatabaseNode{})
 				}
 			})
 			check(err)
@@ -359,7 +359,7 @@ func main() {
 			keystoneAuthParameters = getKeystoneAuthParametersFromFile(*keystoneAuthConfPtr)
 		}
 
-		contrailClient, err := getAPIClient(&apiServer, keystoneAuthParameters, provisionManagerName)
+		contrailClient, err := getAPIClient(&apiServer, keystoneAuthParameters)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -375,7 +375,7 @@ func main() {
 				panic(err)
 			}
 			err = retry(5, 10*time.Second, func() (err error) {
-				err = controlNodes(contrailClient, controlNodeList, provisionManagerName)
+				err = controlNodes(contrailClient, controlNodeList)
 				return
 			})
 			if err != nil {
@@ -393,7 +393,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = configNodes(contrailClient, configNodeList, provisionManagerName); err != nil {
+			if err = configNodes(contrailClient, configNodeList); err != nil {
 				panic(err)
 			}
 		}
@@ -408,7 +408,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = analyticsNodes(contrailClient, analyticsNodeList, provisionManagerName); err != nil {
+			if err = analyticsNodes(contrailClient, analyticsNodeList); err != nil {
 				panic(err)
 			}
 		}
@@ -438,7 +438,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = databaseNodes(contrailClient, databaseNodeList, provisionManagerName); err != nil {
+			if err = databaseNodes(contrailClient, databaseNodeList); err != nil {
 				panic(err)
 			}
 		}
@@ -496,7 +496,7 @@ func connectionError(err error) bool {
 	return false
 }
 
-func getAPIClient(apiServerObj *APIServer, keystoneAuthParameters *KeystoneAuthParameters, provisionManagerName string) (*contrail.Client, error) {
+func getAPIClient(apiServerObj *APIServer, keystoneAuthParameters *KeystoneAuthParameters) (*contrail.Client, error) {
 	var contrailClient *contrail.Client
 	for _, apiServer := range apiServerObj.APIServerList {
 		apiServerSlice := strings.Split(apiServer, ":")
@@ -523,7 +523,7 @@ func getAPIClient(apiServerObj *APIServer, keystoneAuthParameters *KeystoneAuthP
 
 }
 
-func controlNodes(contrailClient *contrail.Client, nodeList []*types.ControlNode, provisionManagerName string) error {
+func controlNodes(contrailClient *contrail.Client, nodeList []*types.ControlNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "bgp-router"
 	vncNodes := []*types.ControlNode{}
@@ -574,7 +574,7 @@ func controlNodes(contrailClient *contrail.Client, nodeList []*types.ControlNode
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					fmt.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient, provisionManagerName)
+					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -584,7 +584,7 @@ func controlNodes(contrailClient *contrail.Client, nodeList []*types.ControlNode
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					fmt.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient, provisionManagerName)
+					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -602,7 +602,7 @@ func controlNodes(contrailClient *contrail.Client, nodeList []*types.ControlNode
 	return nil
 }
 
-func configNodes(contrailClient *contrail.Client, nodeList []*types.ConfigNode, provisionManagerName string) error {
+func configNodes(contrailClient *contrail.Client, nodeList []*types.ConfigNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "config-node"
 	vncNodes := []*types.ConfigNode{}
@@ -646,7 +646,7 @@ func configNodes(contrailClient *contrail.Client, nodeList []*types.ConfigNode, 
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					fmt.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient, provisionManagerName)
+					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -656,7 +656,7 @@ func configNodes(contrailClient *contrail.Client, nodeList []*types.ConfigNode, 
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					fmt.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient, provisionManagerName)
+					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -674,7 +674,7 @@ func configNodes(contrailClient *contrail.Client, nodeList []*types.ConfigNode, 
 	return nil
 }
 
-func analyticsNodes(contrailClient *contrail.Client, nodeList []*types.AnalyticsNode, provisionManagerName string) error {
+func analyticsNodes(contrailClient *contrail.Client, nodeList []*types.AnalyticsNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "analytics-node"
 	vncNodes := []*types.AnalyticsNode{}
@@ -718,7 +718,7 @@ func analyticsNodes(contrailClient *contrail.Client, nodeList []*types.Analytics
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					fmt.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient, provisionManagerName)
+					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -728,7 +728,7 @@ func analyticsNodes(contrailClient *contrail.Client, nodeList []*types.Analytics
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					fmt.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient, provisionManagerName)
+					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -746,7 +746,7 @@ func analyticsNodes(contrailClient *contrail.Client, nodeList []*types.Analytics
 	return nil
 }
 
-func databaseNodes(contrailClient *contrail.Client, nodeList []*types.DatabaseNode, provisionManagerName string) error {
+func databaseNodes(contrailClient *contrail.Client, nodeList []*types.DatabaseNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "database-node"
 	vncNodes := []*types.DatabaseNode{}
@@ -794,7 +794,7 @@ func databaseNodes(contrailClient *contrail.Client, nodeList []*types.DatabaseNo
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					log.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient, provisionManagerName)
+					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
 					}
@@ -804,7 +804,7 @@ func databaseNodes(contrailClient *contrail.Client, nodeList []*types.DatabaseNo
 			for _, node := range nodeList {
 				if node.Hostname == k {
 					log.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient, provisionManagerName)
+					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
 					}

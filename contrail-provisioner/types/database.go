@@ -14,7 +14,7 @@ type DatabaseNode struct {
 }
 
 // Create creates a DatabaseNode instance
-func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
+func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.DatabaseNode{}
@@ -34,7 +34,7 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 }
 
 // Update updates a DatabaseNode instance
-func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client, provisionManagerName string) error {
+func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("database-node")
