@@ -8,8 +8,9 @@ import (
 
 // DatabaseNode struct defines Contrail database node
 type DatabaseNode struct {
-	IPAddress string `yaml:"ipAddress,omitempty"`
-	Hostname  string `yaml:"hostname,omitempty"`
+	IPAddress   string            `yaml:"ipAddress,omitempty"`
+	Hostname    string            `yaml:"hostname,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 // Create creates a DatabaseNode instance
@@ -19,7 +20,10 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 			vncNode := &contrailTypes.DatabaseNode{}
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetDatabaseNodeIpAddress(node.IPAddress)
-			vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
+			annotations := &contrailTypes.KeyValuePairs{
+				KeyValuePair: ConvertMapToContrailKeyValuePairs(node.Annotations),
+			}
+			vncNode.SetAnnotations(annotations)
 			err := contrailClient.Create(vncNode)
 			if err != nil {
 				return err
@@ -46,7 +50,6 @@ func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrai
 				if typedNode.GetName() == nodeName {
 					typedNode.SetFQName("", []string{"default-global-system-config", nodeName})
 					typedNode.SetDatabaseNodeIpAddress(node.IPAddress)
-					typedNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 					err := contrailClient.Update(typedNode)
 					if err != nil {
 						return err

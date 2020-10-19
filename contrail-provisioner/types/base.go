@@ -1,13 +1,11 @@
 package types
 
 import (
+	"errors"
+
 	contrail "github.com/Juniper/contrail-go-api"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
-)
-
-const (
-	managedByAnnotationKey = "managed_by"
 )
 
 // Nodes struct defines all Contrail node types
@@ -28,20 +26,46 @@ type ApiClient interface {
 	ReadListResult(string, *contrail.ListResult) (contrail.IObject, error)
 }
 
-func IsManagedByMe(annotations []contrailTypes.KeyValuePair, provisionManagerName string) bool {
-	managedByMe := false
-	for _, annotation := range annotations {
-		if annotation.Key == managedByAnnotationKey && annotation.Value == provisionManagerName {
-			managedByMe = true
+func HasRequiredAnnotations(annotations []contrailTypes.KeyValuePair, requiredAnnotations map[string]string) bool {
+	hasRequiredAnnotations := true
+	actualAnnotations := ConvertContrailKeyValuePairsToMap(annotations)
+	for reqKey, regVal := range requiredAnnotations {
+		if actualAnnotations[reqKey] == regVal {
+			hasRequiredAnnotations = false
 		}
 	}
-	return managedByMe
+	return hasRequiredAnnotations
 }
 
-func GetManagedByMeAnnotation(provisionManagerName string) *contrailTypes.KeyValuePairs {
-	return &contrailTypes.KeyValuePairs{
-		KeyValuePair: []contrailTypes.KeyValuePair{
-			{Key: managedByAnnotationKey, Value: provisionManagerName},
-		},
+func ConvertContrailKeyValuePairsToMap(keyValPairs []contrailTypes.KeyValuePair) map[string]string {
+	output := map[string]string{}
+	for _, annotation := range keyValPairs {
+		output[annotation.Key] = annotation.Value
 	}
+	return output
+}
+
+func ConvertMapToContrailKeyValuePairs(keyValMap map[string]string) []contrailTypes.KeyValuePair {
+	output := []contrailTypes.KeyValuePair{}
+	for key, val := range keyValMap {
+		output = append(output, contrailTypes.KeyValuePair{Key: key, Value: val})
+	}
+	return output
+}
+
+func GetContrailObjectByName(contrailClient ApiClient, contrailType string, requiredName string) (contrail.IObject, error) {
+	listResults, err := contrailClient.List(contrailType)
+	if err != nil {
+		return nil, err
+	}
+	for _, listResult := range listResults {
+		obj, err := contrailClient.ReadListResult(contrailType, &listResult)
+		if err != nil {
+			return nil, err
+		}
+		if obj.GetName() == requiredName {
+			return obj, nil
+		}
+	}
+	return nil, errors.New(contrailType + " " + requiredName + " not found.")
 }

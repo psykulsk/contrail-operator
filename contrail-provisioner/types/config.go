@@ -8,8 +8,9 @@ import (
 
 // ConfigNode struct defines Contrail config node
 type ConfigNode struct {
-	IPAddress string `yaml:"ipAddress,omitempty"`
-	Hostname  string `yaml:"hostname,omitempty"`
+	IPAddress   string            `yaml:"ipAddress,omitempty"`
+	Hostname    string            `yaml:"hostname,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 // Create creates a ConfigNode instance
@@ -19,7 +20,10 @@ func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailCli
 			vncNode := &contrailTypes.ConfigNode{}
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetConfigNodeIpAddress(node.IPAddress)
-			vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
+			annotations := &contrailTypes.KeyValuePairs{
+				KeyValuePair: ConvertMapToContrailKeyValuePairs(node.Annotations),
+			}
+			vncNode.SetAnnotations(annotations)
 			err := contrailClient.Create(vncNode)
 			if err != nil {
 				return err
@@ -46,7 +50,6 @@ func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailCli
 				if typedNode.GetName() == nodeName {
 					typedNode.SetFQName("", []string{"default-global-system-config", nodeName})
 					typedNode.SetConfigNodeIpAddress(node.IPAddress)
-					typedNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 					err := contrailClient.Update(typedNode)
 					if err != nil {
 						return err

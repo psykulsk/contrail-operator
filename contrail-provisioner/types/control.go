@@ -11,9 +11,10 @@ import (
 
 // ControlNode struct defines Contrail control node
 type ControlNode struct {
-	IPAddress string `yaml:"ipAddress,omitempty"`
-	Hostname  string `yaml:"hostname,omitempty"`
-	ASN       int    `yaml:"asn,omitempty"`
+	IPAddress   string            `yaml:"ipAddress,omitempty"`
+	Hostname    string            `yaml:"hostname,omitempty"`
+	ASN         int               `yaml:"asn,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 // Create creates a ControlNode instance
@@ -23,7 +24,10 @@ func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailC
 			vncNode := &contrailTypes.BgpRouter{}
 			vncNode.SetFQName("", []string{"default-domain", "default-project", "ip-fabric", "__default__", nodeName})
 			vncNode.SetName(nodeName)
-			vncNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
+			annotations := &contrailTypes.KeyValuePairs{
+				KeyValuePair: ConvertMapToContrailKeyValuePairs(node.Annotations),
+			}
+			vncNode.SetAnnotations(annotations)
 			bgpParameters := &contrailTypes.BgpRouterParams{
 				Address:          node.IPAddress,
 				AutonomousSystem: node.ASN,
@@ -164,7 +168,6 @@ func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailC
 						},
 					}
 					typedNode.SetBgpRouterParameters(bgpParameters)
-					typedNode.SetAnnotations(GetManagedByMeAnnotation(provisionManagerName))
 					err := contrailClient.Update(typedNode)
 					if err != nil {
 						return err

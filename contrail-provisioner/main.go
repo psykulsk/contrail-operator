@@ -100,7 +100,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = vrouternodes.ReconcileVrouterNodes(contrailClient, nodeList, provisionManagerName); err != nil {
+		if err = vrouternodes.ReconcileVrouterNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "database":
@@ -236,7 +236,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(vrouterNodesPtr, "vrouter", contrailClient, provisionManagerName)
 			} else if os.IsNotExist(err) {
-				vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{}, provisionManagerName)
+				vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
 			}
 			fmt.Println("setting up vrouter node watcher")
 			watchFile := strings.Split(*vrouterNodesPtr, "/")
@@ -247,7 +247,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(vrouterNodesPtr, "vrouter", contrailClient, provisionManagerName)
 				} else if os.IsNotExist(err) {
-					vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{}, provisionManagerName)
+					vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
 				}
 			})
 			check(err)
@@ -423,7 +423,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = vrouternodes.ReconcileVrouterNodes(contrailClient, vrouterNodeList, provisionManagerName); err != nil {
+			if err = vrouternodes.ReconcileVrouterNodes(contrailClient, vrouterNodeList); err != nil {
 				panic(err)
 			}
 		}
