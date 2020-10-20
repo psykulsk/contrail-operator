@@ -2,10 +2,17 @@ package databasenodes
 
 import (
 	"log"
+	"os"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
 )
+
+var databaseNodesInfoLog *log.Logger
+
+func init() {
+	databaseNodesInfoLog = log.New(os.Stdout, "databasenodes: ", log.LstdFlags)
+}
 
 func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*types.DatabaseNode) error {
 	var actionMap = make(map[string]string)
@@ -15,7 +22,7 @@ func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*types.Da
 	if err != nil {
 		return err
 	}
-	log.Printf("VncNodeList: %v\n", vncNodeList)
+	databaseNodesInfoLog.Printf("VncNodeList: %v\n", vncNodeList)
 	for _, vncNode := range vncNodeList {
 		obj, err := contrailClient.ReadListResult(nodeType, &vncNode)
 		if err != nil {
@@ -32,7 +39,7 @@ func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*types.Da
 	for _, node := range nodeList {
 		actionMap[node.Hostname] = "create"
 	}
-	log.Printf("VncNodes: %v\n", vncNodes)
+	databaseNodesInfoLog.Printf("VncNodes: %v\n", vncNodes)
 
 	for _, vncNode := range vncNodes {
 		if _, ok := actionMap[vncNode.Hostname]; ok {
@@ -49,12 +56,12 @@ func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*types.Da
 		}
 	}
 	for k, v := range actionMap {
-		log.Printf("actionMapValue: %v\n", v)
+		databaseNodesInfoLog.Printf("actionMapValue: %v\n", v)
 		switch v {
 		case "update":
 			for _, node := range nodeList {
 				if node.Hostname == k {
-					log.Println("updating node ", node.Hostname)
+					databaseNodesInfoLog.Println("updating node ", node.Hostname)
 					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
@@ -64,7 +71,7 @@ func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*types.Da
 		case "create":
 			for _, node := range nodeList {
 				if node.Hostname == k {
-					log.Println("creating node ", node.Hostname)
+					databaseNodesInfoLog.Println("creating node ", node.Hostname)
 					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
@@ -77,7 +84,7 @@ func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*types.Da
 			if err != nil {
 				return err
 			}
-			log.Println("deleting node ", k)
+			databaseNodesInfoLog.Println("deleting node ", k)
 		}
 	}
 	return nil

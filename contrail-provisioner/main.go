@@ -520,10 +520,6 @@ func getAPIClient(apiServerObj *APIServer, keystoneAuthParameters *KeystoneAuthP
 
 }
 
-
-
-
-
 func setupAuthKeystone(client *contrail.Client, keystoneAuthParameters *KeystoneAuthParameters) {
 	// AddEncryption expected http url in older versions of contrail-go-api
 	// https://github.com/Juniper/contrail-go-api/commit/4c876ba038a8ecec211376133375d467b6098202

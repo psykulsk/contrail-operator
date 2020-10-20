@@ -1,13 +1,20 @@
 package confignodes
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
 )
 
 const nodeType string = "config-node"
+
+var configNodesInfoLog *log.Logger
+
+func init() {
+	configNodesInfoLog = log.New(os.Stdout, "confignodes: ", log.LstdFlags)
+}
 
 func ReconcileConfigNodes(contrailClient types.ApiClient, nodeList []*types.ConfigNode) error {
 	var actionMap = make(map[string]string)
@@ -51,7 +58,7 @@ func ReconcileConfigNodes(contrailClient types.ApiClient, nodeList []*types.Conf
 		case "update":
 			for _, node := range nodeList {
 				if node.Hostname == k {
-					fmt.Println("updating node ", node.Hostname)
+					configNodesInfoLog.Println("updating node ", node.Hostname)
 					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
@@ -61,7 +68,7 @@ func ReconcileConfigNodes(contrailClient types.ApiClient, nodeList []*types.Conf
 		case "create":
 			for _, node := range nodeList {
 				if node.Hostname == k {
-					fmt.Println("creating node ", node.Hostname)
+					configNodesInfoLog.Println("creating node ", node.Hostname)
 					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
@@ -74,7 +81,7 @@ func ReconcileConfigNodes(contrailClient types.ApiClient, nodeList []*types.Conf
 			if err != nil {
 				return err
 			}
-			fmt.Println("deleting node ", k)
+			configNodesInfoLog.Println("deleting node ", k)
 		}
 	}
 	return nil
