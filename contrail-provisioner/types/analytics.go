@@ -1,8 +1,6 @@
 package types
 
 import (
-	"github.com/Juniper/contrail-go-api"
-	//contrailTypes "github.com/Juniper/contrail-go-api/types"
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 )
 
@@ -14,7 +12,7 @@ type AnalyticsNode struct {
 }
 
 // Create creates a AnalyticsNode instance
-func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contrailClient ApiClient) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.AnalyticsNode{}
@@ -34,7 +32,7 @@ func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contr
 }
 
 // Update updates a AnalyticsNode instance
-func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contrailClient ApiClient) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("analytics-node")
@@ -62,7 +60,7 @@ func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contr
 }
 
 // Delete deletes a AnalyticsNode instance
-func (c *AnalyticsNode) Delete(nodeName string, contrailClient *contrail.Client) error {
+func (c *AnalyticsNode) Delete(nodeName string, contrailClient ApiClient) error {
 	vncNodeList, err := contrailClient.List("analytics-node")
 	if err != nil {
 		return err

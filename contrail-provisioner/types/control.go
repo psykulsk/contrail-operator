@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Juniper/contrail-go-api"
-	//contrailTypes "github.com/Juniper/contrail-go-api/types"
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 )
 
@@ -18,7 +16,7 @@ type ControlNode struct {
 }
 
 // Create creates a ControlNode instance
-func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient ApiClient) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.BgpRouter{}
@@ -139,7 +137,7 @@ func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailC
 }
 
 // Update updates a ControlNode instance
-func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient ApiClient) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("bgp-router")
@@ -180,7 +178,7 @@ func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailC
 }
 
 // Delete deletes a ControlNode instance
-func (c *ControlNode) Delete(nodeName string, contrailClient *contrail.Client) error {
+func (c *ControlNode) Delete(nodeName string, contrailClient ApiClient) error {
 	vncNodeList, err := contrailClient.List("bgp-router")
 	if err != nil {
 		return err

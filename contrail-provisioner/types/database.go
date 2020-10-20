@@ -1,8 +1,6 @@
 package types
 
 import (
-	"github.com/Juniper/contrail-go-api"
-	//contrailTypes "github.com/Juniper/contrail-go-api/types"
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 )
 
@@ -14,7 +12,7 @@ type DatabaseNode struct {
 }
 
 // Create creates a DatabaseNode instance
-func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient ApiClient) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.DatabaseNode{}
@@ -34,7 +32,7 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 }
 
 // Update updates a DatabaseNode instance
-func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient *contrail.Client) error {
+func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient ApiClient) error {
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNodeList, err := contrailClient.List("database-node")
@@ -62,7 +60,7 @@ func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrai
 }
 
 // Delete deletes a DatabaseNode instance
-func (c *DatabaseNode) Delete(nodeName string, contrailClient *contrail.Client) error {
+func (c *DatabaseNode) Delete(nodeName string, contrailClient ApiClient) error {
 	vncNodeList, err := contrailClient.List("database-node")
 	if err != nil {
 		return err

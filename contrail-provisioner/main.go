@@ -17,8 +17,12 @@ import (
 	"gopkg.in/yaml.v2"
 
 	contrail "github.com/Juniper/contrail-go-api"
-
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
+
+	"github.com/Juniper/contrail-operator/contrail-provisioner/analyticsnodes"
+	"github.com/Juniper/contrail-operator/contrail-provisioner/confignodes"
+	"github.com/Juniper/contrail-operator/contrail-provisioner/controlnodes"
+	"github.com/Juniper/contrail-operator/contrail-provisioner/databasenodes"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/vrouternodes"
 )
@@ -73,7 +77,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = controlNodes(contrailClient, nodeList); err != nil {
+		if err = controlnodes.ReconcileControlNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "analytics":
@@ -82,7 +86,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = analyticsNodes(contrailClient, nodeList); err != nil {
+		if err = analyticsnodes.ReconcileAnalyticsNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "config":
@@ -91,7 +95,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = configNodes(contrailClient, nodeList); err != nil {
+		if err = confignodes.ReconcileConfigNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	case "vrouter":
@@ -109,7 +113,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 		if err != nil {
 			panic(err)
 		}
-		if err = databaseNodes(contrailClient, nodeList); err != nil {
+		if err = databasenodes.ReconcileDatabaseNodes(contrailClient, nodeList); err != nil {
 			panic(err)
 		}
 	}
@@ -202,7 +206,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(controlNodesPtr, "control", contrailClient)
 			} else if os.IsNotExist(err) {
-				controlNodes(contrailClient, []*types.ControlNode{})
+				controlnodes.ReconcileControlNodes(contrailClient, []*types.ControlNode{})
 			}
 			fmt.Println("setting up control node watcher")
 			watchFile := strings.Split(*controlNodesPtr, "/")
@@ -213,7 +217,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(controlNodesPtr, "control", contrailClient)
 				} else if os.IsNotExist(err) {
-					controlNodes(contrailClient, []*types.ControlNode{})
+					controlnodes.ReconcileControlNodes(contrailClient, []*types.ControlNode{})
 				}
 			})
 			check(err)
@@ -256,7 +260,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 			} else if os.IsNotExist(err) {
-				analyticsNodes(contrailClient, []*types.AnalyticsNode{})
+				analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*types.AnalyticsNode{})
 			}
 			fmt.Println("setting up analytics node watcher")
 			watchFile := strings.Split(*analyticsNodesPtr, "/")
@@ -267,7 +271,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 				} else if os.IsNotExist(err) {
-					analyticsNodes(contrailClient, []*types.AnalyticsNode{})
+					analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*types.AnalyticsNode{})
 				}
 			})
 			check(err)
@@ -283,7 +287,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(configNodesPtr, "config", contrailClient)
 			} else if os.IsNotExist(err) {
-				configNodes(contrailClient, []*types.ConfigNode{})
+				confignodes.ReconcileConfigNodes(contrailClient, []*types.ConfigNode{})
 			}
 			fmt.Println("setting up config node watcher")
 			watchFile := strings.Split(*configNodesPtr, "/")
@@ -294,7 +298,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(configNodesPtr, "config", contrailClient)
 				} else if os.IsNotExist(err) {
-					configNodes(contrailClient, []*types.ConfigNode{})
+					confignodes.ReconcileConfigNodes(contrailClient, []*types.ConfigNode{})
 				}
 			})
 			check(err)
@@ -310,7 +314,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(databaseNodesPtr, "database", contrailClient)
 			} else if os.IsNotExist(err) {
-				databaseNodes(contrailClient, []*types.DatabaseNode{})
+				databasenodes.ReconcileDatabaseNodes(contrailClient, []*types.DatabaseNode{})
 			}
 			fmt.Println("setting up database node watcher")
 			watchFile := strings.Split(*databaseNodesPtr, "/")
@@ -321,7 +325,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(databaseNodesPtr, "database", contrailClient)
 				} else if os.IsNotExist(err) {
-					databaseNodes(contrailClient, []*types.DatabaseNode{})
+					databasenodes.ReconcileDatabaseNodes(contrailClient, []*types.DatabaseNode{})
 				}
 			})
 			check(err)
@@ -368,7 +372,7 @@ func main() {
 				panic(err)
 			}
 			err = retry(5, 10*time.Second, func() (err error) {
-				err = controlNodes(contrailClient, controlNodeList)
+				err = controlnodes.ReconcileControlNodes(contrailClient, controlNodeList)
 				return
 			})
 			if err != nil {
@@ -386,7 +390,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = configNodes(contrailClient, configNodeList); err != nil {
+			if err = confignodes.ReconcileConfigNodes(contrailClient, configNodeList); err != nil {
 				panic(err)
 			}
 		}
@@ -401,7 +405,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = analyticsNodes(contrailClient, analyticsNodeList); err != nil {
+			if err = analyticsnodes.ReconcileAnalyticsNodes(contrailClient, analyticsNodeList); err != nil {
 				panic(err)
 			}
 		}
@@ -431,7 +435,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			if err = databaseNodes(contrailClient, databaseNodeList); err != nil {
+			if err = databasenodes.ReconcileDatabaseNodes(contrailClient, databaseNodeList); err != nil {
 				panic(err)
 			}
 		}
@@ -516,304 +520,9 @@ func getAPIClient(apiServerObj *APIServer, keystoneAuthParameters *KeystoneAuthP
 
 }
 
-func controlNodes(contrailClient *contrail.Client, nodeList []*types.ControlNode) error {
-	var actionMap = make(map[string]string)
-	nodeType := "bgp-router"
-	vncNodes := []*types.ControlNode{}
-	vncNodeList, err := contrailClient.List(nodeType)
-	if err != nil {
-		return err
-	}
-	for _, vncNode := range vncNodeList {
-		obj, err := contrailClient.ReadListResult(nodeType, &vncNode)
-		if err != nil {
-			return err
-		}
-		typedNode := obj.(*contrailTypes.BgpRouter)
-		bgpRouterParamters := typedNode.GetBgpRouterParameters()
-		if bgpRouterParamters.RouterType == "control-node" {
-			node := &types.ControlNode{
-				IPAddress: bgpRouterParamters.Address,
-				Hostname:  typedNode.GetName(),
-				ASN:       bgpRouterParamters.AutonomousSystem,
-			}
-			vncNodes = append(vncNodes, node)
-		}
-	}
-	for _, node := range nodeList {
-		actionMap[node.Hostname] = "create"
-	}
-	for _, vncNode := range vncNodes {
-		if _, ok := actionMap[vncNode.Hostname]; ok {
-			for _, node := range nodeList {
-				if node.Hostname == vncNode.Hostname {
-					actionMap[node.Hostname] = "noop"
-					if node.IPAddress != vncNode.IPAddress {
-						actionMap[node.Hostname] = "update"
-					}
-					if node.ASN != vncNode.ASN {
-						actionMap[node.Hostname] = "update"
-					}
-				}
-			}
-		} else {
 
-			actionMap[vncNode.Hostname] = "delete"
-		}
-	}
-	for k, v := range actionMap {
-		switch v {
-		case "update":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					fmt.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "create":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					fmt.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "delete":
-			node := &types.ControlNode{}
-			err = node.Delete(k, contrailClient)
-			if err != nil {
-				return err
-			}
-			fmt.Println("deleting node ", k)
-		}
-	}
-	return nil
-}
 
-func configNodes(contrailClient *contrail.Client, nodeList []*types.ConfigNode) error {
-	var actionMap = make(map[string]string)
-	nodeType := "config-node"
-	vncNodes := []*types.ConfigNode{}
-	vncNodeList, err := contrailClient.List(nodeType)
-	if err != nil {
-		return err
-	}
-	for _, vncNode := range vncNodeList {
-		obj, err := contrailClient.ReadListResult(nodeType, &vncNode)
-		if err != nil {
-			return err
-		}
-		typedNode := obj.(*contrailTypes.ConfigNode)
 
-		node := &types.ConfigNode{
-			IPAddress: typedNode.GetConfigNodeIpAddress(),
-			Hostname:  typedNode.GetName(),
-		}
-		vncNodes = append(vncNodes, node)
-	}
-	for _, node := range nodeList {
-		actionMap[node.Hostname] = "create"
-	}
-	for _, vncNode := range vncNodes {
-		if _, ok := actionMap[vncNode.Hostname]; ok {
-			for _, node := range nodeList {
-				if node.Hostname == vncNode.Hostname {
-					actionMap[node.Hostname] = "noop"
-					if node.IPAddress != vncNode.IPAddress {
-						actionMap[node.Hostname] = "update"
-					}
-				}
-			}
-		} else {
-			actionMap[vncNode.Hostname] = "delete"
-		}
-	}
-	for k, v := range actionMap {
-		switch v {
-		case "update":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					fmt.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "create":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					fmt.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "delete":
-			node := &types.ConfigNode{}
-			err = node.Delete(k, contrailClient)
-			if err != nil {
-				return err
-			}
-			fmt.Println("deleting node ", k)
-		}
-	}
-	return nil
-}
-
-func analyticsNodes(contrailClient *contrail.Client, nodeList []*types.AnalyticsNode) error {
-	var actionMap = make(map[string]string)
-	nodeType := "analytics-node"
-	vncNodes := []*types.AnalyticsNode{}
-	vncNodeList, err := contrailClient.List(nodeType)
-	if err != nil {
-		return err
-	}
-	for _, vncNode := range vncNodeList {
-		obj, err := contrailClient.ReadListResult(nodeType, &vncNode)
-		if err != nil {
-			return err
-		}
-		typedNode := obj.(*contrailTypes.AnalyticsNode)
-
-		node := &types.AnalyticsNode{
-			IPAddress: typedNode.GetAnalyticsNodeIpAddress(),
-			Hostname:  typedNode.GetName(),
-		}
-		vncNodes = append(vncNodes, node)
-	}
-	for _, node := range nodeList {
-		actionMap[node.Hostname] = "create"
-	}
-	for _, vncNode := range vncNodes {
-		if _, ok := actionMap[vncNode.Hostname]; ok {
-			for _, node := range nodeList {
-				if node.Hostname == vncNode.Hostname {
-					actionMap[node.Hostname] = "noop"
-					if node.IPAddress != vncNode.IPAddress {
-						actionMap[node.Hostname] = "update"
-					}
-				}
-			}
-		} else {
-			actionMap[vncNode.Hostname] = "delete"
-		}
-	}
-	for k, v := range actionMap {
-		switch v {
-		case "update":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					fmt.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "create":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					fmt.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "delete":
-			node := &types.ConfigNode{}
-			err = node.Delete(k, contrailClient)
-			if err != nil {
-				return err
-			}
-			fmt.Println("deleting node ", k)
-		}
-	}
-	return nil
-}
-
-func databaseNodes(contrailClient *contrail.Client, nodeList []*types.DatabaseNode) error {
-	var actionMap = make(map[string]string)
-	nodeType := "database-node"
-	vncNodes := []*types.DatabaseNode{}
-	vncNodeList, err := contrailClient.List(nodeType)
-	if err != nil {
-		return err
-	}
-	log.Printf("VncNodeList: %v\n", vncNodeList)
-	for _, vncNode := range vncNodeList {
-		obj, err := contrailClient.ReadListResult(nodeType, &vncNode)
-		if err != nil {
-			return err
-		}
-		typedNode := obj.(*contrailTypes.DatabaseNode)
-
-		node := &types.DatabaseNode{
-			IPAddress: typedNode.GetDatabaseNodeIpAddress(),
-			Hostname:  typedNode.GetName(),
-		}
-		vncNodes = append(vncNodes, node)
-	}
-	for _, node := range nodeList {
-		actionMap[node.Hostname] = "create"
-	}
-	log.Printf("VncNodes: %v\n", vncNodes)
-
-	for _, vncNode := range vncNodes {
-		if _, ok := actionMap[vncNode.Hostname]; ok {
-			for _, node := range nodeList {
-				if node.Hostname == vncNode.Hostname {
-					actionMap[node.Hostname] = "noop"
-					if node.IPAddress != vncNode.IPAddress {
-						actionMap[node.Hostname] = "update"
-					}
-				}
-			}
-		} else {
-			actionMap[vncNode.Hostname] = "delete"
-		}
-	}
-	for k, v := range actionMap {
-		log.Printf("actionMapValue: %v\n", v)
-		switch v {
-		case "update":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					log.Println("updating node ", node.Hostname)
-					err = node.Update(nodeList, k, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "create":
-			for _, node := range nodeList {
-				if node.Hostname == k {
-					log.Println("creating node ", node.Hostname)
-					err = node.Create(nodeList, node.Hostname, contrailClient)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		case "delete":
-			node := &types.DatabaseNode{}
-			err = node.Delete(k, contrailClient)
-			if err != nil {
-				return err
-			}
-			log.Println("deleting node ", k)
-		}
-	}
-	return nil
-}
 
 func setupAuthKeystone(client *contrail.Client, keystoneAuthParameters *KeystoneAuthParameters) {
 	// AddEncryption expected http url in older versions of contrail-go-api
