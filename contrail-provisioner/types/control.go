@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"reflect"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
@@ -15,8 +17,17 @@ type ControlNode struct {
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
+const bgpRouterType string = "bgp-router"
+
+var controlInfoLog *log.Logger
+
+func init() {
+	controlInfoLog = log.New(os.Stdout, "control: ", log.LstdFlags)
+}
+
 // Create creates a ControlNode instance
 func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailClient ApiClient) error {
+	controlInfoLog.Println("Creating " + c.Hostname + " " + bgpRouterType)
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
 			vncNode := &contrailTypes.BgpRouter{}
@@ -138,19 +149,25 @@ func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailC
 
 // Update updates a ControlNode instance
 func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailClient ApiClient) error {
+	controlInfoLog.Println("Updating " + c.Hostname + " " + bgpRouterType)
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
-			vncNodeList, err := contrailClient.List("bgp-router")
+			vncNodeList, err := contrailClient.List(bgpRouterType)
 			if err != nil {
 				return err
 			}
 			for _, vncNode := range vncNodeList {
-				obj, err := contrailClient.ReadListResult("bgp-router", &vncNode)
+				obj, err := contrailClient.ReadListResult(bgpRouterType, &vncNode)
 				if err != nil {
 					return err
 				}
 				typedNode := obj.(*contrailTypes.BgpRouter)
 				if typedNode.GetName() == nodeName {
+					if !HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+						controlInfoLog.Println(c.Hostname + " " + bgpRouterType + " does not have the required annotations.")
+						controlInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + bgpRouterType)
+						return nil
+					}
 					typedNode.SetFQName("", []string{"default-domain", "default-project", "ip-fabric", "__default__", nodeName})
 					bgpParameters := &contrailTypes.BgpRouterParams{
 						Address:          node.IPAddress,
@@ -179,16 +196,23 @@ func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailC
 
 // Delete deletes a ControlNode instance
 func (c *ControlNode) Delete(nodeName string, contrailClient ApiClient) error {
-	vncNodeList, err := contrailClient.List("bgp-router")
+	controlInfoLog.Println("Delete " + c.Hostname + " " + bgpRouterType)
+	vncNodeList, err := contrailClient.List(bgpRouterType)
 	if err != nil {
 		return err
 	}
 	for _, vncNode := range vncNodeList {
-		obj, err := contrailClient.ReadListResult("bgp-router", &vncNode)
+		obj, err := contrailClient.ReadListResult(bgpRouterType, &vncNode)
 		if err != nil {
 			return err
 		}
-		if obj.GetName() == nodeName {
+		typedNode := obj.(*contrailTypes.BgpRouter)
+		if typedNode.GetName() == nodeName {
+			if !HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+				controlInfoLog.Println(c.Hostname + " " + bgpRouterType + " does not have the required annotations.")
+				controlInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + bgpRouterType)
+				return nil
+			}
 			gscObjects := []*contrailTypes.GlobalSystemConfig{}
 			gscObjectsList, err := contrailClient.List("global-system-config")
 			if err != nil {
