@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["controlnodes.go"],
+    importpath = "github.com/Juniper/contrail-operator/contrail-provisioner/controlnodes",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//contrail-provisioner/contrail-go-types:go_default_library",
+        "//contrail-provisioner/types:go_default_library",
+    ],
+)
