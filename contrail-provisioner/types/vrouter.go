@@ -108,7 +108,7 @@ func (c *VrouterNode) Delete(contrailClient ApiClient) error {
 }
 
 func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient ApiClient) error {
-	vrouterInfoLog.Println("Ensuring " + c.Hostname + " " + virtualRouterType + " has the vhost0 virtual-machine interface assigned")
+	vrouterInfoLog.Printf("Ensuring %v %v has the vhost0 virtual-machine interface assigned", c.Hostname, virtualRouterType)
 	obj, err := GetContrailObjectByName(contrailClient, virtualRouterType, c.Hostname)
 	if err != nil {
 		return err
@@ -130,12 +130,11 @@ func ensureVMIVhost0Interface(contrailClient ApiClient, virtualRouter *contrailT
 	if err != nil {
 		return err
 	}
-	if !vhost0VMIPresent {
-		if err = createVhost0VMI(virtualRouter, contrailClient); err != nil {
-			return err
-		}
+	if vhost0VMIPresent {
+		vrouterInfoLog.Printf("vhost0 virtual-machine-interface already exists for %v %v\n", virtualRouter.GetName(), virtualRouterType)
+		return nil
 	}
-	return nil
+	return createVhost0VMI(virtualRouter, contrailClient)
 }
 
 func vhost0VMIPresent(virtualRouter *contrailTypes.VirtualRouter, contrailClient ApiClient) (bool, error) {

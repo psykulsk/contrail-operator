@@ -17,10 +17,9 @@ import (
 	"gopkg.in/yaml.v2"
 
 	contrail "github.com/Juniper/contrail-go-api"
-	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
-
 	"github.com/Juniper/contrail-operator/contrail-provisioner/analyticsnodes"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/confignodes"
+	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/controlnodes"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/databasenodes"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
@@ -65,7 +64,7 @@ type GlobalVrouterConfiguration struct {
 }
 
 func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Client) {
-	fmt.Printf("%s %s updated\n", nodeType, *nodesPtr)
+	log.Printf("%s %s updated\n", nodeType, *nodesPtr)
 	nodeYaml, err := ioutil.ReadFile(*nodesPtr)
 	if err != nil {
 		panic(err)
@@ -197,22 +196,22 @@ func main() {
 			}
 		}
 
-		fmt.Println("start watcher")
+		log.Println("start watcher")
 		done := make(chan bool)
 
 		if controlNodesPtr != nil {
-			fmt.Println("initial control node run")
+			log.Println("initial control node run")
 			_, err := os.Stat(*controlNodesPtr)
 			if !os.IsNotExist(err) {
 				nodeManager(controlNodesPtr, "control", contrailClient)
 			} else if os.IsNotExist(err) {
 				controlnodes.ReconcileControlNodes(contrailClient, []*types.ControlNode{})
 			}
-			fmt.Println("setting up control node watcher")
+			log.Println("setting up control node watcher")
 			watchFile := strings.Split(*controlNodesPtr, "/")
 			watchPath := strings.TrimSuffix(*controlNodesPtr, watchFile[len(watchFile)-1])
 			nodeWatcher, err := WatchFile(watchPath, time.Second, func() {
-				fmt.Println("control node event")
+				log.Println("control node event")
 				_, err := os.Stat(*controlNodesPtr)
 				if !os.IsNotExist(err) {
 					nodeManager(controlNodesPtr, "control", contrailClient)
@@ -228,18 +227,18 @@ func main() {
 		}
 
 		if vrouterNodesPtr != nil {
-			fmt.Println("initial vrouter node run")
+			log.Println("initial vrouter node run")
 			_, err := os.Stat(*vrouterNodesPtr)
 			if !os.IsNotExist(err) {
 				nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
 			} else if os.IsNotExist(err) {
 				vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
 			}
-			fmt.Println("setting up vrouter node watcher")
+			log.Println("setting up vrouter node watcher")
 			watchFile := strings.Split(*vrouterNodesPtr, "/")
 			watchPath := strings.TrimSuffix(*vrouterNodesPtr, watchFile[len(watchFile)-1])
 			nodeWatcher, err := WatchFile(watchPath, time.Second, func() {
-				fmt.Println("vrouter node event")
+				log.Println("vrouter node event")
 				_, err := os.Stat(*vrouterNodesPtr)
 				if !os.IsNotExist(err) {
 					nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
@@ -255,18 +254,18 @@ func main() {
 		}
 
 		if analyticsNodesPtr != nil {
-			fmt.Println("initial analytics node run")
+			log.Println("initial analytics node run")
 			_, err := os.Stat(*analyticsNodesPtr)
 			if !os.IsNotExist(err) {
 				nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 			} else if os.IsNotExist(err) {
 				analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*types.AnalyticsNode{})
 			}
-			fmt.Println("setting up analytics node watcher")
+			log.Println("setting up analytics node watcher")
 			watchFile := strings.Split(*analyticsNodesPtr, "/")
 			watchPath := strings.TrimSuffix(*analyticsNodesPtr, watchFile[len(watchFile)-1])
 			nodeWatcher, err := WatchFile(watchPath, time.Second, func() {
-				fmt.Println("analytics node event")
+				log.Println("analytics node event")
 				_, err := os.Stat(*analyticsNodesPtr)
 				if !os.IsNotExist(err) {
 					nodeManager(analyticsNodesPtr, "analytics", contrailClient)
@@ -282,18 +281,18 @@ func main() {
 		}
 
 		if configNodesPtr != nil {
-			fmt.Println("initial config node run")
+			log.Println("initial config node run")
 			_, err := os.Stat(*configNodesPtr)
 			if !os.IsNotExist(err) {
 				nodeManager(configNodesPtr, "config", contrailClient)
 			} else if os.IsNotExist(err) {
 				confignodes.ReconcileConfigNodes(contrailClient, []*types.ConfigNode{})
 			}
-			fmt.Println("setting up config node watcher")
+			log.Println("setting up config node watcher")
 			watchFile := strings.Split(*configNodesPtr, "/")
 			watchPath := strings.TrimSuffix(*configNodesPtr, watchFile[len(watchFile)-1])
 			nodeWatcher, err := WatchFile(watchPath, time.Second, func() {
-				fmt.Println("config node event")
+				log.Println("config node event")
 				_, err := os.Stat(*configNodesPtr)
 				if !os.IsNotExist(err) {
 					nodeManager(configNodesPtr, "config", contrailClient)
@@ -309,18 +308,18 @@ func main() {
 		}
 
 		if databaseNodesPtr != nil {
-			fmt.Println("initial database node run")
+			log.Println("initial database node run")
 			_, err := os.Stat(*databaseNodesPtr)
 			if !os.IsNotExist(err) {
 				nodeManager(databaseNodesPtr, "database", contrailClient)
 			} else if os.IsNotExist(err) {
 				databasenodes.ReconcileDatabaseNodes(contrailClient, []*types.DatabaseNode{})
 			}
-			fmt.Println("setting up database node watcher")
+			log.Println("setting up database node watcher")
 			watchFile := strings.Split(*databaseNodesPtr, "/")
 			watchPath := strings.TrimSuffix(*databaseNodesPtr, watchFile[len(watchFile)-1])
 			nodeWatcher, err := WatchFile(watchPath, time.Second, func() {
-				fmt.Println("database node event")
+				log.Println("database node event")
 				_, err := os.Stat(*databaseNodesPtr)
 				if !os.IsNotExist(err) {
 					nodeManager(databaseNodesPtr, "database", contrailClient)
@@ -456,39 +455,39 @@ func retry(attempts int, sleep time.Duration, f func() error) (err error) {
 
 		time.Sleep(sleep)
 
-		fmt.Println("retrying after error:", err)
+		log.Println("retrying after error:", err)
 	}
 	return err
 }
 
 func connectionError(err error) bool {
 	if err == nil {
-		fmt.Println("Ok")
+		log.Println("Ok")
 		return false
 
 	} else if netError, ok := err.(net.Error); ok && netError.Timeout() {
-		fmt.Println("Timeout")
+		log.Println("Timeout")
 		return true
 	}
 	unwrappedError := errors.Unwrap(err)
 	switch t := unwrappedError.(type) {
 	case *net.OpError:
 		if t.Op == "dial" {
-			fmt.Println("Unknown host")
+			log.Println("Unknown host")
 			return true
 		} else if t.Op == "read" {
-			fmt.Println("Connection refused")
+			log.Println("Connection refused")
 			return true
 		}
 
 	case syscall.Errno:
 		if t == syscall.ECONNREFUSED {
-			fmt.Println("Connection refused")
+			log.Println("Connection refused")
 			return true
 		}
 
 	default:
-		fmt.Println(t)
+		log.Println(t)
 	}
 	return false
 }
@@ -501,7 +500,7 @@ func getAPIClient(apiServerObj *APIServer, keystoneAuthParameters *KeystoneAuthP
 		if err != nil {
 			return contrailClient, err
 		}
-		fmt.Printf("api server %s:%d\n", apiServerSlice[0], apiPortInt)
+		log.Printf("api server %s:%d\n", apiServerSlice[0], apiPortInt)
 		contrailClient := contrail.NewClient(apiServerSlice[0], apiPortInt)
 		err = contrailClient.AddEncryption(apiServerObj.Encryption.CA, apiServerObj.Encryption.Key, apiServerObj.Encryption.Cert, true)
 		if err != nil {

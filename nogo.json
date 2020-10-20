@@ -29,6 +29,7 @@
     "goimports": {
         "exclude_files": {
             "external/": "external tools don't pass lint",
+            "contrail-provisioner/main.go": "",
             "go_default_test": ""
         }
     },
