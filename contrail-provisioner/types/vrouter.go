@@ -1,7 +1,8 @@
 package types
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	"github.com/Juniper/contrail-go-api"
 
@@ -22,8 +23,15 @@ const (
 	virtualRouterType           = "virtual-router"
 )
 
+var vrouterInfoLog *log.Logger
+
+func init() {
+	vrouterInfoLog = log.New(os.Stdout, "vrouter: ", log.LstdFlags)
+}
+
 // Create creates a VirtualRouter instance
 func (c *VrouterNode) Create(contrailClient ApiClient) error {
+	vrouterInfoLog.Println("Creating " + c.Hostname + " " + virtualRouterType)
 	gscObjects := []*contrailTypes.GlobalSystemConfig{}
 	gscObjectsList, err := contrailClient.List("global-system-config")
 	if err != nil {
@@ -31,7 +39,7 @@ func (c *VrouterNode) Create(contrailClient ApiClient) error {
 	}
 
 	if len(gscObjectsList) == 0 {
-		fmt.Println("no gscObject")
+		vrouterInfoLog.Println("no gscObject")
 	}
 
 	for _, gscObject := range gscObjectsList {
@@ -60,14 +68,15 @@ func (c *VrouterNode) Create(contrailClient ApiClient) error {
 
 // Update updates a VirtualRouter instance
 func (c *VrouterNode) Update(contrailClient ApiClient) error {
+	vrouterInfoLog.Println("Updating " + c.Hostname + " " + virtualRouterType)
 	obj, err := GetContrailObjectByName(contrailClient, virtualRouterType, c.Hostname)
 	if err != nil {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
 	if !HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
-		fmt.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations." +
-			" contrail-provisioner should not modify it. Skipping")
+		vrouterInfoLog.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations.")
+		vrouterInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + virtualRouterType)
 		return nil
 	}
 	virtualRouter.SetVirtualRouterIpAddress(c.IPAddress)
@@ -79,18 +88,19 @@ func (c *VrouterNode) Update(contrailClient ApiClient) error {
 
 // Delete deletes a VirtualRouter instance and it's vhost0 VirtualMachineInterfaces
 func (c *VrouterNode) Delete(contrailClient ApiClient) error {
+	vrouterInfoLog.Println("Deleting " + c.Hostname + " " + virtualRouterType)
 	obj, err := GetContrailObjectByName(contrailClient, virtualRouterType, c.Hostname)
 	if err != nil {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
 	if !HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
-		fmt.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations." +
-			" contrail-provisioner should not modify it. Skipping")
+		vrouterInfoLog.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations.")
+		vrouterInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + virtualRouterType)
 		return nil
 	}
 	deleteVMIs(virtualRouter, contrailClient)
-	fmt.Println("Deleting VirtualRouter ", obj.GetName())
+	vrouterInfoLog.Println("Deleting VirtualRouter ", obj.GetName())
 	if err = contrailClient.Delete(obj); err != nil {
 		return err
 	}
@@ -98,14 +108,15 @@ func (c *VrouterNode) Delete(contrailClient ApiClient) error {
 }
 
 func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient ApiClient) error {
+	vrouterInfoLog.Println("Ensuring " + c.Hostname + " " + virtualRouterType + " has the vhost0 virtual-machine interface assigned")
 	obj, err := GetContrailObjectByName(contrailClient, virtualRouterType, c.Hostname)
 	if err != nil {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
 	if !HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
-		fmt.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations." +
-			" contrail-provisioner should not modify it. Skipping")
+		vrouterInfoLog.Println(c.Hostname + " " + virtualRouterType + " does not have the required annotations.")
+		vrouterInfoLog.Println("Skipping virtual-machine-interface modifications for " + c.Hostname + " " + virtualRouterType)
 		return nil
 	}
 	return ensureVMIVhost0Interface(contrailClient, virtualRouter)
@@ -150,7 +161,7 @@ func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient 
 		return err
 	}
 	vncVMI := &contrailTypes.VirtualMachineInterface{}
-	fmt.Println("Creating vhost0 VMI for VirtualRouter: ", virtualRouter.GetName())
+	vrouterInfoLog.Println("Creating vhost0 virtual-machine-interface for VirtualRouter: ", virtualRouter.GetName())
 	vncVMI.SetParent(virtualRouter)
 	vncVMI.SetVirtualNetworkList([]contrail.ReferencePair{{Object: network}})
 	vncVMI.SetVirtualMachineInterfaceDisablePolicy(false)
@@ -167,7 +178,7 @@ func deleteVMIs(virtualRouter *contrailTypes.VirtualRouter, contrailClient ApiCl
 		return err
 	}
 	for _, vmiRef := range vmiList {
-		fmt.Println("Deleting VMI interface ", vmiRef.Uuid)
+		vrouterInfoLog.Println("Deleting virtual-machine-interface ", vmiRef.Uuid)
 		if err = contrailClient.DeleteByUuid(virtualMachineInterfaceType, vmiRef.Uuid); err != nil {
 			return err
 		}

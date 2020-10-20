@@ -1,7 +1,8 @@
 package vrouternodes
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
@@ -21,6 +22,12 @@ const (
 type NodeWithAction struct {
 	node   *types.VrouterNode
 	action Action
+}
+
+var vrouterNodesInfoLog *log.Logger
+
+func init() {
+	vrouterNodesInfoLog = log.New(os.Stdout, "vrouternodes: ", log.LstdFlags)
 }
 
 // ReconcileVrouterNodes creates, deletes or updates VirtualRouter and
@@ -91,13 +98,13 @@ func executeActionMap(actionMap map[string]NodeWithAction, contrailClient types.
 		var err error
 		switch nodeWithAction.action {
 		case updateAction:
-			fmt.Println("updating vrouter node ", nodeWithAction.node.Hostname)
+			vrouterNodesInfoLog.Println("updating vrouter node ", nodeWithAction.node.Hostname)
 			err = nodeWithAction.node.Update(contrailClient)
 		case createAction:
-			fmt.Println("creating vrouter node ", nodeWithAction.node.Hostname)
+			vrouterNodesInfoLog.Println("creating vrouter node ", nodeWithAction.node.Hostname)
 			err = nodeWithAction.node.Create(contrailClient)
 		case deleteAction:
-			fmt.Println("deleting vrouter node ", nodeWithAction.node.Hostname)
+			vrouterNodesInfoLog.Println("deleting vrouter node ", nodeWithAction.node.Hostname)
 			err = nodeWithAction.node.Delete(contrailClient)
 		}
 		if err != nil {

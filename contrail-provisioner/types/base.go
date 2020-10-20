@@ -8,16 +8,6 @@ import (
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 )
 
-// Nodes struct defines all Contrail node types
-type Nodes struct {
-	ControlNodes   []*ControlNode             `yaml:"controlNodes,omitempty"`
-	BgpRouters     []*contrailTypes.BgpRouter `yaml:"bgpRouters,omitempty"`
-	AnalyticsNodes []*AnalyticsNode           `yaml:"analyticsNodes,omitempty"`
-	VrouterNodes   []*VrouterNode             `yaml:"vrouterNodes,omitempty"`
-	ConfigNodes    []*ConfigNode              `yaml:"configNodes,omitempty"`
-	DatabaseNodes  []*DatabaseNode            `yaml:"databaseNodes,omitempty"`
-}
-
 // ApiClient interface extends contrail.ApiClient by a missing ReadListResult
 // to enable passing ApiClient interface instead of the struct to ease
 // mocking in unit test
@@ -30,7 +20,7 @@ func HasRequiredAnnotations(annotations []contrailTypes.KeyValuePair, requiredAn
 	hasRequiredAnnotations := true
 	actualAnnotations := ConvertContrailKeyValuePairsToMap(annotations)
 	for reqKey, regVal := range requiredAnnotations {
-		if actualAnnotations[reqKey] == regVal {
+		if actualAnnotations[reqKey] != regVal {
 			hasRequiredAnnotations = false
 		}
 	}
