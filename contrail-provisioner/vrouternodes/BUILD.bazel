@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//contrail-provisioner/contrail-go-types:go_default_library",
         "//contrail-provisioner/types:go_default_library",
+        "@com_github_juniper_contrail_go_api//:go_default_library",
     ],
 )
 
@@ -18,7 +19,6 @@ go_test(
     deps = [
         "//contrail-provisioner/contrail-go-types:go_default_library",
         "//contrail-provisioner/fake:go_default_library",
-        "//contrail-provisioner/types:go_default_library",
         "@com_github_juniper_contrail_go_api//:go_default_library",
         "@com_github_stretchr_testify//assert:go_default_library",
     ],

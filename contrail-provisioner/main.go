@@ -17,6 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	contrail "github.com/Juniper/contrail-go-api"
+
 	"github.com/Juniper/contrail-operator/contrail-provisioner/analyticsnodes"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/confignodes"
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"

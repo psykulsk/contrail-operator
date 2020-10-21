@@ -251,7 +251,6 @@ func (c *ControlNode) Delete(nodeName string, contrailClient types.ApiClient) er
 	return nil
 }
 
-
 func ReconcileControlNodes(contrailClient types.ApiClient, nodeList []*ControlNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "bgp-router"
