@@ -16,9 +16,8 @@ type ApiClient interface {
 	ReadListResult(string, *contrail.ListResult) (contrail.IObject, error)
 }
 
-func HasRequiredAnnotations(annotations []contrailTypes.KeyValuePair, requiredAnnotations map[string]string) bool {
+func HasRequiredAnnotations(actualAnnotations map[string]string, requiredAnnotations map[string]string) bool {
 	hasRequiredAnnotations := true
-	actualAnnotations := ConvertContrailKeyValuePairsToMap(annotations)
 	for reqKey, regVal := range requiredAnnotations {
 		if actualAnnotations[reqKey] != regVal {
 			hasRequiredAnnotations = false
@@ -27,9 +26,9 @@ func HasRequiredAnnotations(annotations []contrailTypes.KeyValuePair, requiredAn
 	return hasRequiredAnnotations
 }
 
-func ConvertContrailKeyValuePairsToMap(keyValPairs []contrailTypes.KeyValuePair) map[string]string {
+func ConvertContrailKeyValuePairsToMap(keyValPairs contrailTypes.KeyValuePairs) map[string]string {
 	output := map[string]string{}
-	for _, annotation := range keyValPairs {
+	for _, annotation := range keyValPairs.KeyValuePair {
 		output[annotation.Key] = annotation.Value
 	}
 	return output

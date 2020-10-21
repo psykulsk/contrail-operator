@@ -60,7 +60,8 @@ func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrai
 				}
 				typedNode := obj.(*contrailTypes.DatabaseNode)
 				if typedNode.GetName() == nodeName {
-					if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+					storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(typedNode.GetAnnotations())
+					if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 						databaseInfoLog.Println(c.Hostname + " " + databaseNodeType + " does not have the required annotations.")
 						databaseInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + databaseNodeType)
 						return nil
@@ -92,7 +93,8 @@ func (c *DatabaseNode) Delete(nodeName string, contrailClient contrailclient.Api
 		}
 		typedNode := obj.(*contrailTypes.DatabaseNode)
 		if obj.GetName() == nodeName {
-			if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+			storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(typedNode.GetAnnotations())
+			if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 				databaseInfoLog.Println(c.Hostname + " " + databaseNodeType + " does not have the required annotations.")
 				databaseInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + databaseNodeType)
 				return nil

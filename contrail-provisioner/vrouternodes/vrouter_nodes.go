@@ -89,7 +89,8 @@ func (c *VrouterNode) Update(contrailClient contrailclient.ApiClient) error {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
-	if !contrailclient.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+	storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(virtualRouter.GetAnnotations())
+	if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 		vrouterInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 		vrouterInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + nodeType)
 		return nil
@@ -109,7 +110,8 @@ func (c *VrouterNode) Delete(contrailClient contrailclient.ApiClient) error {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
-	if !contrailclient.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+	storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(virtualRouter.GetAnnotations())
+	if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 		vrouterInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 		vrouterInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + nodeType)
 		return nil
@@ -129,7 +131,8 @@ func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient contrailclient.Api
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
-	if !contrailclient.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+	storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(virtualRouter.GetAnnotations())
+	if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 		vrouterInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 		vrouterInfoLog.Println("Skipping virtual-machine-interface modifications for " + c.Hostname + " " + nodeType)
 		return nil

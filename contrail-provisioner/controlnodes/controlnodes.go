@@ -163,7 +163,8 @@ func (c *ControlNode) Update(nodeList []*ControlNode, nodeName string, contrailC
 				}
 				typedNode := obj.(*contrailTypes.BgpRouter)
 				if typedNode.GetName() == nodeName {
-					if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+					storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(typedNode.GetAnnotations())
+					if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 						controlInfoLog.Println(c.Hostname + " " + bgpRouterType + " does not have the required annotations.")
 						controlInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + bgpRouterType)
 						return nil
@@ -208,7 +209,8 @@ func (c *ControlNode) Delete(nodeName string, contrailClient contrailclient.ApiC
 		}
 		typedNode := obj.(*contrailTypes.BgpRouter)
 		if typedNode.GetName() == nodeName {
-			if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+			storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(typedNode.GetAnnotations())
+			if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 				controlInfoLog.Println(c.Hostname + " " + bgpRouterType + " does not have the required annotations.")
 				controlInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + bgpRouterType)
 				return nil

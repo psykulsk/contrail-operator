@@ -60,7 +60,8 @@ func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contr
 				}
 				typedNode := obj.(*contrailTypes.AnalyticsNode)
 				if typedNode.GetName() == nodeName {
-					if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+					storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(typedNode.GetAnnotations())
+					if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 						analyticsInfoLog.Println(c.Hostname + " " + analyticsNodeType + " does not have the required annotations.")
 						analyticsInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + analyticsNodeType)
 						return nil
@@ -92,7 +93,8 @@ func (c *AnalyticsNode) Delete(nodeName string, contrailClient contrailclient.Ap
 		}
 		typedNode := obj.(*contrailTypes.AnalyticsNode)
 		if typedNode.GetName() == nodeName {
-			if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+			storedAnnotations := contrailclient.ConvertContrailKeyValuePairsToMap(typedNode.GetAnnotations())
+			if !contrailclient.HasRequiredAnnotations(storedAnnotations, c.Annotations) {
 				analyticsInfoLog.Println(c.Hostname + " " + analyticsNodeType + " does not have the required annotations.")
 				analyticsInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + analyticsNodeType)
 				return nil
