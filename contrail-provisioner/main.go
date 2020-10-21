@@ -22,7 +22,6 @@ import (
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/controlnodes"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/databasenodes"
-	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/vrouternodes"
 )
 
@@ -71,7 +70,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 	}
 	switch nodeType {
 	case "control":
-		var nodeList []*types.ControlNode
+		var nodeList []*controlnodes.ControlNode
 		err = yaml.Unmarshal(nodeYaml, &nodeList)
 		if err != nil {
 			panic(err)
@@ -80,7 +79,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 			panic(err)
 		}
 	case "analytics":
-		var nodeList []*types.AnalyticsNode
+		var nodeList []*analyticsnodes.AnalyticsNode
 		err = yaml.Unmarshal(nodeYaml, &nodeList)
 		if err != nil {
 			panic(err)
@@ -89,7 +88,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 			panic(err)
 		}
 	case "config":
-		var nodeList []*types.ConfigNode
+		var nodeList []*confignodes.ConfigNode
 		err = yaml.Unmarshal(nodeYaml, &nodeList)
 		if err != nil {
 			panic(err)
@@ -98,7 +97,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 			panic(err)
 		}
 	case "vrouter":
-		var nodeList []*types.VrouterNode
+		var nodeList []*vrouternodes.VrouterNode
 		err = yaml.Unmarshal(nodeYaml, &nodeList)
 		if err != nil {
 			panic(err)
@@ -107,7 +106,7 @@ func nodeManager(nodesPtr *string, nodeType string, contrailClient *contrail.Cli
 			panic(err)
 		}
 	case "database":
-		var nodeList []*types.DatabaseNode
+		var nodeList []*databasenodes.DatabaseNode
 		err = yaml.Unmarshal(nodeYaml, &nodeList)
 		if err != nil {
 			panic(err)
@@ -205,7 +204,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(controlNodesPtr, "control", contrailClient)
 			} else if os.IsNotExist(err) {
-				controlnodes.ReconcileControlNodes(contrailClient, []*types.ControlNode{})
+				controlnodes.ReconcileControlNodes(contrailClient, []*controlnodes.ControlNode{})
 			}
 			log.Println("setting up control node watcher")
 			watchFile := strings.Split(*controlNodesPtr, "/")
@@ -216,7 +215,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(controlNodesPtr, "control", contrailClient)
 				} else if os.IsNotExist(err) {
-					controlnodes.ReconcileControlNodes(contrailClient, []*types.ControlNode{})
+					controlnodes.ReconcileControlNodes(contrailClient, []*controlnodes.ControlNode{})
 				}
 			})
 			check(err)
@@ -232,7 +231,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
 			} else if os.IsNotExist(err) {
-				vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
+				vrouternodes.ReconcileVrouterNodes(contrailClient, []*vrouternodes.VrouterNode{})
 			}
 			log.Println("setting up vrouter node watcher")
 			watchFile := strings.Split(*vrouterNodesPtr, "/")
@@ -243,7 +242,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(vrouterNodesPtr, "vrouter", contrailClient)
 				} else if os.IsNotExist(err) {
-					vrouternodes.ReconcileVrouterNodes(contrailClient, []*types.VrouterNode{})
+					vrouternodes.ReconcileVrouterNodes(contrailClient, []*vrouternodes.VrouterNode{})
 				}
 			})
 			check(err)
@@ -259,7 +258,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 			} else if os.IsNotExist(err) {
-				analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*types.AnalyticsNode{})
+				analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*analyticsnodes.AnalyticsNode{})
 			}
 			log.Println("setting up analytics node watcher")
 			watchFile := strings.Split(*analyticsNodesPtr, "/")
@@ -270,7 +269,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(analyticsNodesPtr, "analytics", contrailClient)
 				} else if os.IsNotExist(err) {
-					analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*types.AnalyticsNode{})
+					analyticsnodes.ReconcileAnalyticsNodes(contrailClient, []*analyticsnodes.AnalyticsNode{})
 				}
 			})
 			check(err)
@@ -286,7 +285,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(configNodesPtr, "config", contrailClient)
 			} else if os.IsNotExist(err) {
-				confignodes.ReconcileConfigNodes(contrailClient, []*types.ConfigNode{})
+				confignodes.ReconcileConfigNodes(contrailClient, []*confignodes.ConfigNode{})
 			}
 			log.Println("setting up config node watcher")
 			watchFile := strings.Split(*configNodesPtr, "/")
@@ -297,7 +296,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(configNodesPtr, "config", contrailClient)
 				} else if os.IsNotExist(err) {
-					confignodes.ReconcileConfigNodes(contrailClient, []*types.ConfigNode{})
+					confignodes.ReconcileConfigNodes(contrailClient, []*confignodes.ConfigNode{})
 				}
 			})
 			check(err)
@@ -313,7 +312,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				nodeManager(databaseNodesPtr, "database", contrailClient)
 			} else if os.IsNotExist(err) {
-				databasenodes.ReconcileDatabaseNodes(contrailClient, []*types.DatabaseNode{})
+				databasenodes.ReconcileDatabaseNodes(contrailClient, []*databasenodes.DatabaseNode{})
 			}
 			log.Println("setting up database node watcher")
 			watchFile := strings.Split(*databaseNodesPtr, "/")
@@ -324,7 +323,7 @@ func main() {
 				if !os.IsNotExist(err) {
 					nodeManager(databaseNodesPtr, "database", contrailClient)
 				} else if os.IsNotExist(err) {
-					databasenodes.ReconcileDatabaseNodes(contrailClient, []*types.DatabaseNode{})
+					databasenodes.ReconcileDatabaseNodes(contrailClient, []*databasenodes.DatabaseNode{})
 				}
 			})
 			check(err)
@@ -361,7 +360,7 @@ func main() {
 		}
 
 		if controlNodesPtr != nil {
-			var controlNodeList []*types.ControlNode
+			var controlNodeList []*controlnodes.ControlNode
 			controlNodeYaml, err := ioutil.ReadFile(*controlNodesPtr)
 			if err != nil {
 				panic(err)
@@ -380,7 +379,7 @@ func main() {
 		}
 
 		if configNodesPtr != nil {
-			var configNodeList []*types.ConfigNode
+			var configNodeList []*confignodes.ConfigNode
 			configNodeYaml, err := ioutil.ReadFile(*configNodesPtr)
 			if err != nil {
 				panic(err)
@@ -395,7 +394,7 @@ func main() {
 		}
 
 		if analyticsNodesPtr != nil {
-			var analyticsNodeList []*types.AnalyticsNode
+			var analyticsNodeList []*analyticsnodes.AnalyticsNode
 			analyticsNodeYaml, err := ioutil.ReadFile(*analyticsNodesPtr)
 			if err != nil {
 				panic(err)
@@ -410,7 +409,7 @@ func main() {
 		}
 
 		if vrouterNodesPtr != nil {
-			var vrouterNodeList []*types.VrouterNode
+			var vrouterNodeList []*vrouternodes.VrouterNode
 			vrouterNodeYaml, err := ioutil.ReadFile(*vrouterNodesPtr)
 			if err != nil {
 				panic(err)
@@ -425,7 +424,7 @@ func main() {
 		}
 
 		if databaseNodesPtr != nil {
-			var databaseNodeList []*types.DatabaseNode
+			var databaseNodeList []*databasenodes.DatabaseNode
 			databaseNodeYaml, err := ioutil.ReadFile(*databaseNodesPtr)
 			if err != nil {
 				panic(err)

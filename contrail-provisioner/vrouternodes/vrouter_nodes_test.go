@@ -9,7 +9,6 @@ import (
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/Juniper/contrail-operator/contrail-provisioner/fake"
-	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
 )
 
 func TestGetVrouterNodesInApiServerCreatesVrouterNodeObjects(t *testing.T) {
@@ -24,7 +23,7 @@ func TestGetVrouterNodesInApiServerCreatesVrouterNodeObjects(t *testing.T) {
 		return &virtualRouterOne, nil
 	}
 
-	expectedVirtualRouterNodes := []*types.VrouterNode{
+	expectedVirtualRouterNodes := []*VrouterNode{
 		{IPAddress: "1.1.1.1", Hostname: "virtual-router-one"},
 		{IPAddress: "1.1.1.1", Hostname: "virtual-router-one"},
 	}
@@ -56,37 +55,37 @@ func TestGetVrouterNodesInApiServerReturnsEmptyListWhenNoNodesInApiServer(t *tes
 }
 
 func TestCreateVrouterNodesActionMap(t *testing.T) {
-	requiredNodeOne := &types.VrouterNode{
+	requiredNodeOne := &VrouterNode{
 		IPAddress: "1.1.1.1",
 		Hostname:  "first-node",
 	}
-	requiredNodeTwo := &types.VrouterNode{
+	requiredNodeTwo := &VrouterNode{
 		IPAddress: "2.2.2.2",
 		Hostname:  "second-node",
 	}
-	modifiedRequiredNodeTwo := &types.VrouterNode{
+	modifiedRequiredNodeTwo := &VrouterNode{
 		IPAddress: "2.2.2.3",
 		Hostname:  "second-node",
 	}
-	apiServerNodeOne := &types.VrouterNode{
+	apiServerNodeOne := &VrouterNode{
 		IPAddress: "1.1.1.1",
 		Hostname:  "first-node",
 	}
-	apiServerNodeTwo := &types.VrouterNode{
+	apiServerNodeTwo := &VrouterNode{
 		IPAddress: "2.2.2.2",
 		Hostname:  "second-node",
 	}
 
 	testCases := []struct {
 		name              string
-		nodesInApiServer  []*types.VrouterNode
-		requiredNodes     []*types.VrouterNode
+		nodesInApiServer  []*VrouterNode
+		requiredNodes     []*VrouterNode
 		expectedActionMap map[string]NodeWithAction
 	}{
 		{
 			name:             "Create action for all required nodes if none in the Api Server",
-			nodesInApiServer: []*types.VrouterNode{},
-			requiredNodes:    []*types.VrouterNode{requiredNodeOne, requiredNodeTwo},
+			nodesInApiServer: []*VrouterNode{},
+			requiredNodes:    []*VrouterNode{requiredNodeOne, requiredNodeTwo},
 			expectedActionMap: map[string]NodeWithAction{
 				"first-node":  {requiredNodeOne, createAction},
 				"second-node": {requiredNodeTwo, createAction},
@@ -94,8 +93,8 @@ func TestCreateVrouterNodesActionMap(t *testing.T) {
 		},
 		{
 			name:             "Noop action for nodes in the Api Server",
-			nodesInApiServer: []*types.VrouterNode{apiServerNodeTwo},
-			requiredNodes:    []*types.VrouterNode{requiredNodeOne, requiredNodeTwo},
+			nodesInApiServer: []*VrouterNode{apiServerNodeTwo},
+			requiredNodes:    []*VrouterNode{requiredNodeOne, requiredNodeTwo},
 			expectedActionMap: map[string]NodeWithAction{
 				"first-node":  {requiredNodeOne, createAction},
 				"second-node": {requiredNodeTwo, noopAction},
@@ -103,8 +102,8 @@ func TestCreateVrouterNodesActionMap(t *testing.T) {
 		},
 		{
 			name:             "Delete action for not required nodes in the Api Server",
-			nodesInApiServer: []*types.VrouterNode{apiServerNodeTwo, apiServerNodeOne},
-			requiredNodes:    []*types.VrouterNode{requiredNodeTwo},
+			nodesInApiServer: []*VrouterNode{apiServerNodeTwo, apiServerNodeOne},
+			requiredNodes:    []*VrouterNode{requiredNodeTwo},
 			expectedActionMap: map[string]NodeWithAction{
 				"first-node":  {requiredNodeOne, deleteAction},
 				"second-node": {requiredNodeTwo, noopAction},
@@ -112,8 +111,8 @@ func TestCreateVrouterNodesActionMap(t *testing.T) {
 		},
 		{
 			name:             "Update action for modified node",
-			nodesInApiServer: []*types.VrouterNode{apiServerNodeTwo, apiServerNodeOne},
-			requiredNodes:    []*types.VrouterNode{requiredNodeOne, modifiedRequiredNodeTwo},
+			nodesInApiServer: []*VrouterNode{apiServerNodeTwo, apiServerNodeOne},
+			requiredNodes:    []*VrouterNode{requiredNodeOne, modifiedRequiredNodeTwo},
 			expectedActionMap: map[string]NodeWithAction{
 				"first-node":  {requiredNodeOne, noopAction},
 				"second-node": {modifiedRequiredNodeTwo, updateAction},
@@ -121,8 +120,8 @@ func TestCreateVrouterNodesActionMap(t *testing.T) {
 		},
 		{
 			name:              "Empty action map when there are no vrouter nodes",
-			nodesInApiServer:  []*types.VrouterNode{},
-			requiredNodes:     []*types.VrouterNode{},
+			nodesInApiServer:  []*VrouterNode{},
+			requiredNodes:     []*VrouterNode{},
 			expectedActionMap: map[string]NodeWithAction{},
 		},
 	}

@@ -8,16 +8,109 @@ import (
 	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
 )
 
-var analyticsNodesInfoLog *log.Logger
-
-func init() {
-	analyticsNodesInfoLog = log.New(os.Stdout, "analyticsnodes: ", log.LstdFlags)
+// AnalyticsNode struct defines Contrail Analytics node
+type AnalyticsNode struct {
+	IPAddress   string            `yaml:"ipAddress,omitempty"`
+	Hostname    string            `yaml:"hostname,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
-func ReconcileAnalyticsNodes(contrailClient types.ApiClient, nodeList []*types.AnalyticsNode) error {
+const analyticsNodeType string = "analytics-node"
+
+var analyticsInfoLog *log.Logger
+
+func init() {
+	analyticsInfoLog = log.New(os.Stdout, "analyticsnodes: ", log.LstdFlags)
+}
+
+// Create creates a AnalyticsNode instance
+func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contrailClient types.ApiClient) error {
+	analyticsInfoLog.Println("Creating " + c.Hostname + " " + analyticsNodeType)
+	for _, node := range nodeList {
+		if node.Hostname == nodeName {
+			vncNode := &contrailTypes.AnalyticsNode{}
+			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
+			vncNode.SetAnalyticsNodeIpAddress(node.IPAddress)
+			annotations := &contrailTypes.KeyValuePairs{
+				KeyValuePair: types.ConvertMapToContrailKeyValuePairs(node.Annotations),
+			}
+			vncNode.SetAnnotations(annotations)
+			err := contrailClient.Create(vncNode)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Update updates a AnalyticsNode instance
+func (c *AnalyticsNode) Update(nodeList []*AnalyticsNode, nodeName string, contrailClient types.ApiClient) error {
+	analyticsInfoLog.Println("Updating " + c.Hostname + " " + analyticsNodeType)
+	for _, node := range nodeList {
+		if node.Hostname == nodeName {
+			vncNodeList, err := contrailClient.List(analyticsNodeType)
+			if err != nil {
+				return err
+			}
+			for _, vncNode := range vncNodeList {
+				obj, err := contrailClient.ReadListResult(analyticsNodeType, &vncNode)
+				if err != nil {
+					return err
+				}
+				typedNode := obj.(*contrailTypes.AnalyticsNode)
+				if typedNode.GetName() == nodeName {
+					if !types.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+						analyticsInfoLog.Println(c.Hostname + " " + analyticsNodeType + " does not have the required annotations.")
+						analyticsInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + analyticsNodeType)
+						return nil
+					}
+					typedNode.SetFQName("", []string{"default-global-system-config", nodeName})
+					typedNode.SetAnalyticsNodeIpAddress(node.IPAddress)
+					err := contrailClient.Update(typedNode)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// Delete deletes a AnalyticsNode instance
+func (c *AnalyticsNode) Delete(nodeName string, contrailClient types.ApiClient) error {
+	analyticsInfoLog.Println("Deleting " + c.Hostname + " " + analyticsNodeType)
+	vncNodeList, err := contrailClient.List(analyticsNodeType)
+	if err != nil {
+		return err
+	}
+	for _, vncNode := range vncNodeList {
+		obj, err := contrailClient.ReadListResult(analyticsNodeType, &vncNode)
+		if err != nil {
+			return err
+		}
+		typedNode := obj.(*contrailTypes.AnalyticsNode)
+		if typedNode.GetName() == nodeName {
+			if !types.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+				analyticsInfoLog.Println(c.Hostname + " " + analyticsNodeType + " does not have the required annotations.")
+				analyticsInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + analyticsNodeType)
+				return nil
+			}
+			err = contrailClient.Delete(obj)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+	return nil
+}
+
+func ReconcileAnalyticsNodes(contrailClient types.ApiClient, nodeList []*AnalyticsNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "analytics-node"
-	vncNodes := []*types.AnalyticsNode{}
+	vncNodes := []*AnalyticsNode{}
 	vncNodeList, err := contrailClient.List(nodeType)
 	if err != nil {
 		return err
@@ -29,7 +122,7 @@ func ReconcileAnalyticsNodes(contrailClient types.ApiClient, nodeList []*types.A
 		}
 		typedNode := obj.(*contrailTypes.AnalyticsNode)
 
-		node := &types.AnalyticsNode{
+		node := &AnalyticsNode{
 			IPAddress: typedNode.GetAnalyticsNodeIpAddress(),
 			Hostname:  typedNode.GetName(),
 		}
@@ -57,7 +150,7 @@ func ReconcileAnalyticsNodes(contrailClient types.ApiClient, nodeList []*types.A
 		case "update":
 			for _, node := range nodeList {
 				if node.Hostname == k {
-					analyticsNodesInfoLog.Println("updating node ", node.Hostname)
+					analyticsInfoLog.Println("updating node ", node.Hostname)
 					err = node.Update(nodeList, k, contrailClient)
 					if err != nil {
 						return err
@@ -67,7 +160,7 @@ func ReconcileAnalyticsNodes(contrailClient types.ApiClient, nodeList []*types.A
 		case "create":
 			for _, node := range nodeList {
 				if node.Hostname == k {
-					analyticsNodesInfoLog.Println("creating node ", node.Hostname)
+					analyticsInfoLog.Println("creating node ", node.Hostname)
 					err = node.Create(nodeList, node.Hostname, contrailClient)
 					if err != nil {
 						return err
@@ -75,12 +168,12 @@ func ReconcileAnalyticsNodes(contrailClient types.ApiClient, nodeList []*types.A
 				}
 			}
 		case "delete":
-			node := &types.ConfigNode{}
+			analyticsInfoLog.Println("deleting node ", k)
+			node := &AnalyticsNode{}
 			err = node.Delete(k, contrailClient)
 			if err != nil {
 				return err
 			}
-			analyticsNodesInfoLog.Println("deleting node ", k)
 		}
 	}
 	return nil
