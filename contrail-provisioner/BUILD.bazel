@@ -59,7 +59,7 @@ container_push(
     name = "contrail-provisioner-push-local",
     image = ":contrail-provisioner-image",
     format = "Docker",
-    registry = "localhost:5000",
-    repository = "contrail-operator-provisioner",
-    tag = "latest",
+    registry = "docker.io",
+    repository = "pitersk/contrail-operator-provisioner",
+    tag = "master.annotations",
 )

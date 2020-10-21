@@ -2,8 +2,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["base.go"],
-    importpath = "github.com/Juniper/contrail-operator/contrail-provisioner/types",
+    srcs = ["contrailclient.go"],
+    importpath = "github.com/Juniper/contrail-operator/contrail-provisioner/contrailclient",
     visibility = ["//visibility:public"],
     deps = [
         "//contrail-provisioner/contrail-go-types:go_default_library",

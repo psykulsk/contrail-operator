@@ -5,7 +5,7 @@ import (
 	"os"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
-	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
+	"github.com/Juniper/contrail-operator/contrail-provisioner/contrailclient"
 )
 
 // DatabaseNode struct defines Contrail database node
@@ -24,7 +24,7 @@ func init() {
 }
 
 // Create creates a DatabaseNode instance
-func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient types.ApiClient) error {
+func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrailClient contrailclient.ApiClient) error {
 	databaseInfoLog.Println("Creating " + c.Hostname + " " + databaseNodeType)
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
@@ -32,7 +32,7 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetDatabaseNodeIpAddress(node.IPAddress)
 			annotations := &contrailTypes.KeyValuePairs{
-				KeyValuePair: types.ConvertMapToContrailKeyValuePairs(node.Annotations),
+				KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations),
 			}
 			vncNode.SetAnnotations(annotations)
 			err := contrailClient.Create(vncNode)
@@ -45,7 +45,7 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 }
 
 // Update updates a DatabaseNode instance
-func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient types.ApiClient) error {
+func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrailClient contrailclient.ApiClient) error {
 	databaseInfoLog.Println("Updating " + c.Hostname + " " + databaseNodeType)
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
@@ -60,7 +60,7 @@ func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrai
 				}
 				typedNode := obj.(*contrailTypes.DatabaseNode)
 				if typedNode.GetName() == nodeName {
-					if !types.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+					if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
 						databaseInfoLog.Println(c.Hostname + " " + databaseNodeType + " does not have the required annotations.")
 						databaseInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + databaseNodeType)
 						return nil
@@ -79,7 +79,7 @@ func (c *DatabaseNode) Update(nodeList []*DatabaseNode, nodeName string, contrai
 }
 
 // Delete deletes a DatabaseNode instance
-func (c *DatabaseNode) Delete(nodeName string, contrailClient types.ApiClient) error {
+func (c *DatabaseNode) Delete(nodeName string, contrailClient contrailclient.ApiClient) error {
 	databaseInfoLog.Println("Deleting " + c.Hostname + " " + databaseNodeType)
 	vncNodeList, err := contrailClient.List(databaseNodeType)
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *DatabaseNode) Delete(nodeName string, contrailClient types.ApiClient) e
 		}
 		typedNode := obj.(*contrailTypes.DatabaseNode)
 		if obj.GetName() == nodeName {
-			if !types.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+			if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
 				databaseInfoLog.Println(c.Hostname + " " + databaseNodeType + " does not have the required annotations.")
 				databaseInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + databaseNodeType)
 				return nil
@@ -107,7 +107,7 @@ func (c *DatabaseNode) Delete(nodeName string, contrailClient types.ApiClient) e
 	return nil
 }
 
-func ReconcileDatabaseNodes(contrailClient types.ApiClient, nodeList []*DatabaseNode) error {
+func ReconcileDatabaseNodes(contrailClient contrailclient.ApiClient, nodeList []*DatabaseNode) error {
 	var actionMap = make(map[string]string)
 	nodeType := "database-node"
 	vncNodes := []*DatabaseNode{}

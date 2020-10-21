@@ -5,7 +5,7 @@ import (
 	"os"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
-	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
+	"github.com/Juniper/contrail-operator/contrail-provisioner/contrailclient"
 )
 
 // ConfigNode struct defines Contrail config node
@@ -24,7 +24,7 @@ func init() {
 }
 
 // Create creates a ConfigNode instance
-func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailClient types.ApiClient) error {
+func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailClient contrailclient.ApiClient) error {
 	configInfoLog.Println("Creating " + c.Hostname + " " + nodeType)
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
@@ -32,7 +32,7 @@ func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailCli
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetConfigNodeIpAddress(node.IPAddress)
 			annotations := &contrailTypes.KeyValuePairs{
-				KeyValuePair: types.ConvertMapToContrailKeyValuePairs(node.Annotations),
+				KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations),
 			}
 			vncNode.SetAnnotations(annotations)
 			err := contrailClient.Create(vncNode)
@@ -45,7 +45,7 @@ func (c *ConfigNode) Create(nodeList []*ConfigNode, nodeName string, contrailCli
 }
 
 // Update updates a ConfigNode instance
-func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailClient types.ApiClient) error {
+func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailClient contrailclient.ApiClient) error {
 	configInfoLog.Println("Updating " + c.Hostname + " " + nodeType)
 	for _, node := range nodeList {
 		if node.Hostname == nodeName {
@@ -60,7 +60,7 @@ func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailCli
 				}
 				typedNode := obj.(*contrailTypes.ConfigNode)
 				if typedNode.GetName() == nodeName {
-					if !types.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+					if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
 						configInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 						configInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + nodeType)
 						return nil
@@ -79,7 +79,7 @@ func (c *ConfigNode) Update(nodeList []*ConfigNode, nodeName string, contrailCli
 }
 
 // Delete deletes a ConfigNode instance
-func (c *ConfigNode) Delete(nodeName string, contrailClient types.ApiClient) error {
+func (c *ConfigNode) Delete(nodeName string, contrailClient contrailclient.ApiClient) error {
 	configInfoLog.Println("Deleting " + c.Hostname + " " + nodeType)
 	vncNodeList, err := contrailClient.List(nodeType)
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *ConfigNode) Delete(nodeName string, contrailClient types.ApiClient) err
 		}
 		typedNode := obj.(*contrailTypes.ConfigNode)
 		if typedNode.GetName() == nodeName {
-			if !types.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
+			if !contrailclient.HasRequiredAnnotations(typedNode.GetAnnotations().KeyValuePair, c.Annotations) {
 				configInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 				configInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + nodeType)
 				return nil
@@ -107,7 +107,7 @@ func (c *ConfigNode) Delete(nodeName string, contrailClient types.ApiClient) err
 	return nil
 }
 
-func ReconcileConfigNodes(contrailClient types.ApiClient, nodeList []*ConfigNode) error {
+func ReconcileConfigNodes(contrailClient contrailclient.ApiClient, nodeList []*ConfigNode) error {
 	var actionMap = make(map[string]string)
 	vncNodes := []*ConfigNode{}
 	vncNodeList, err := contrailClient.List(nodeType)

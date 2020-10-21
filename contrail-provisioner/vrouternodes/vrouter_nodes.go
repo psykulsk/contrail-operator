@@ -7,7 +7,7 @@ import (
 	"github.com/Juniper/contrail-go-api"
 
 	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
-	"github.com/Juniper/contrail-operator/contrail-provisioner/types"
+	"github.com/Juniper/contrail-operator/contrail-provisioner/contrailclient"
 )
 
 // VrouterNode struct defines Contrail Vrouter node
@@ -45,7 +45,7 @@ func init() {
 }
 
 // Create creates a VirtualRouter instance
-func (c *VrouterNode) Create(contrailClient types.ApiClient) error {
+func (c *VrouterNode) Create(contrailClient contrailclient.ApiClient) error {
 	vrouterInfoLog.Println("Creating " + c.Hostname + " " + nodeType)
 	gscObjects := []*contrailTypes.GlobalSystemConfig{}
 	gscObjectsList, err := contrailClient.List("global-system-config")
@@ -70,7 +70,7 @@ func (c *VrouterNode) Create(contrailClient types.ApiClient) error {
 		virtualRouter.SetParent(gsc)
 		virtualRouter.SetName(c.Hostname)
 		annotations := &contrailTypes.KeyValuePairs{
-			KeyValuePair: types.ConvertMapToContrailKeyValuePairs(c.Annotations),
+			KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(c.Annotations),
 		}
 		virtualRouter.SetAnnotations(annotations)
 		if err := contrailClient.Create(virtualRouter); err != nil {
@@ -82,14 +82,14 @@ func (c *VrouterNode) Create(contrailClient types.ApiClient) error {
 }
 
 // Update updates a VirtualRouter instance
-func (c *VrouterNode) Update(contrailClient types.ApiClient) error {
+func (c *VrouterNode) Update(contrailClient contrailclient.ApiClient) error {
 	vrouterInfoLog.Println("Updating " + c.Hostname + " " + nodeType)
-	obj, err := types.GetContrailObjectByName(contrailClient, nodeType, c.Hostname)
+	obj, err := contrailclient.GetContrailObjectByName(contrailClient, nodeType, c.Hostname)
 	if err != nil {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
-	if !types.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+	if !contrailclient.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
 		vrouterInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 		vrouterInfoLog.Println("Skipping Update operation of " + c.Hostname + " " + nodeType)
 		return nil
@@ -102,14 +102,14 @@ func (c *VrouterNode) Update(contrailClient types.ApiClient) error {
 }
 
 // Delete deletes a VirtualRouter instance and it's vhost0 VirtualMachineInterfaces
-func (c *VrouterNode) Delete(contrailClient types.ApiClient) error {
+func (c *VrouterNode) Delete(contrailClient contrailclient.ApiClient) error {
 	vrouterInfoLog.Println("Deleting " + c.Hostname + " " + nodeType)
-	obj, err := types.GetContrailObjectByName(contrailClient, nodeType, c.Hostname)
+	obj, err := contrailclient.GetContrailObjectByName(contrailClient, nodeType, c.Hostname)
 	if err != nil {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
-	if !types.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+	if !contrailclient.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
 		vrouterInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 		vrouterInfoLog.Println("Skipping Delete operation of " + c.Hostname + " " + nodeType)
 		return nil
@@ -122,14 +122,14 @@ func (c *VrouterNode) Delete(contrailClient types.ApiClient) error {
 	return nil
 }
 
-func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient types.ApiClient) error {
+func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient contrailclient.ApiClient) error {
 	vrouterInfoLog.Printf("Ensuring %v %v has the vhost0 virtual-machine interface assigned", c.Hostname, nodeType)
-	obj, err := types.GetContrailObjectByName(contrailClient, nodeType, c.Hostname)
+	obj, err := contrailclient.GetContrailObjectByName(contrailClient, nodeType, c.Hostname)
 	if err != nil {
 		return err
 	}
 	virtualRouter := obj.(*contrailTypes.VirtualRouter)
-	if !types.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
+	if !contrailclient.HasRequiredAnnotations(virtualRouter.GetAnnotations().KeyValuePair, c.Annotations) {
 		vrouterInfoLog.Println(c.Hostname + " " + nodeType + " does not have the required annotations.")
 		vrouterInfoLog.Println("Skipping virtual-machine-interface modifications for " + c.Hostname + " " + nodeType)
 		return nil
@@ -140,7 +140,7 @@ func (c *VrouterNode) EnsureVMIVhost0Interface(contrailClient types.ApiClient) e
 // EnsureVMIVhost0Interface checks whether the VirtualRouter
 // has a "vhost0" VirtualMachineInterface assigned to it and creates
 // one if neccessary.
-func ensureVMIVhost0Interface(contrailClient types.ApiClient, virtualRouter *contrailTypes.VirtualRouter) error {
+func ensureVMIVhost0Interface(contrailClient contrailclient.ApiClient, virtualRouter *contrailTypes.VirtualRouter) error {
 	vhost0VMIPresent, err := vhost0VMIPresent(virtualRouter, contrailClient)
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func ensureVMIVhost0Interface(contrailClient types.ApiClient, virtualRouter *con
 	return createVhost0VMI(virtualRouter, contrailClient)
 }
 
-func vhost0VMIPresent(virtualRouter *contrailTypes.VirtualRouter, contrailClient types.ApiClient) (bool, error) {
+func vhost0VMIPresent(virtualRouter *contrailTypes.VirtualRouter, contrailClient contrailclient.ApiClient) (bool, error) {
 	vmiList, err := virtualRouter.GetVirtualMachineInterfaces()
 	if err != nil {
 		return false, err
@@ -169,7 +169,7 @@ func vhost0VMIPresent(virtualRouter *contrailTypes.VirtualRouter, contrailClient
 	return false, nil
 }
 
-func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient types.ApiClient) error {
+func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient contrailclient.ApiClient) error {
 	network, err := contrailTypes.VirtualNetworkByName(contrailClient, ipFabricNetworkFQName)
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func createVhost0VMI(virtualRouter *contrailTypes.VirtualRouter, contrailClient 
 	return nil
 }
 
-func deleteVMIs(virtualRouter *contrailTypes.VirtualRouter, contrailClient types.ApiClient) error {
+func deleteVMIs(virtualRouter *contrailTypes.VirtualRouter, contrailClient contrailclient.ApiClient) error {
 	vmiList, err := virtualRouter.GetVirtualMachineInterfaces()
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func deleteVMIs(virtualRouter *contrailTypes.VirtualRouter, contrailClient types
 // ReconcileVrouterNodes creates, deletes or updates VirtualRouter and
 // VirtualMachineInterface objects in Contrail Api Server based on the
 // list of requiredNodes and current objects in the Api Server
-func ReconcileVrouterNodes(contrailClient types.ApiClient, requiredNodes []*VrouterNode) error {
+func ReconcileVrouterNodes(contrailClient contrailclient.ApiClient, requiredNodes []*VrouterNode) error {
 	nodesInApiServer, err := getVrouterNodesInApiServer(contrailClient)
 	if err != nil {
 		return err
@@ -215,7 +215,7 @@ func ReconcileVrouterNodes(contrailClient types.ApiClient, requiredNodes []*Vrou
 	return nil
 }
 
-func getVrouterNodesInApiServer(contrailClient types.ApiClient) ([]*VrouterNode, error) {
+func getVrouterNodesInApiServer(contrailClient contrailclient.ApiClient) ([]*VrouterNode, error) {
 	nodesInApiServer := []*VrouterNode{}
 	vncNodeList, err := contrailClient.List(nodeType)
 	if err != nil {
@@ -263,7 +263,7 @@ func createVrouterNodesActionMap(nodesInApiServer []*VrouterNode, requiredNodes 
 	return actionMap
 }
 
-func executeActionMap(actionMap map[string]NodeWithAction, contrailClient types.ApiClient) error {
+func executeActionMap(actionMap map[string]NodeWithAction, contrailClient contrailclient.ApiClient) error {
 	for _, nodeWithAction := range actionMap {
 		var err error
 		switch nodeWithAction.action {
