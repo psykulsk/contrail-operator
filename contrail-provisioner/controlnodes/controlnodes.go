@@ -33,10 +33,8 @@ func (c *ControlNode) Create(nodeList []*ControlNode, nodeName string, contrailC
 			vncNode := &contrailTypes.BgpRouter{}
 			vncNode.SetFQName("", []string{"default-domain", "default-project", "ip-fabric", "__default__", nodeName})
 			vncNode.SetName(nodeName)
-			annotations := &contrailTypes.KeyValuePairs{
-				KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations),
-			}
-			vncNode.SetAnnotations(annotations)
+			annotations := contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations)
+			vncNode.SetAnnotations(&annotations)
 			bgpParameters := &contrailTypes.BgpRouterParams{
 				Address:          node.IPAddress,
 				AutonomousSystem: node.ASN,

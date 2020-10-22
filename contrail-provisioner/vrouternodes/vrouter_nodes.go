@@ -69,10 +69,8 @@ func (c *VrouterNode) Create(contrailClient contrailclient.ApiClient) error {
 		virtualRouter.SetVirtualRouterIpAddress(c.IPAddress)
 		virtualRouter.SetParent(gsc)
 		virtualRouter.SetName(c.Hostname)
-		annotations := &contrailTypes.KeyValuePairs{
-			KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(c.Annotations),
-		}
-		virtualRouter.SetAnnotations(annotations)
+		annotations := contrailclient.ConvertMapToContrailKeyValuePairs(c.Annotations)
+		virtualRouter.SetAnnotations(&annotations)
 		if err := contrailClient.Create(virtualRouter); err != nil {
 			return err
 		}

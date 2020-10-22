@@ -31,10 +31,8 @@ func (c *DatabaseNode) Create(nodeList []*DatabaseNode, nodeName string, contrai
 			vncNode := &contrailTypes.DatabaseNode{}
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetDatabaseNodeIpAddress(node.IPAddress)
-			annotations := &contrailTypes.KeyValuePairs{
-				KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations),
-			}
-			vncNode.SetAnnotations(annotations)
+			annotations := contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations)
+			vncNode.SetAnnotations(&annotations)
 			err := contrailClient.Create(vncNode)
 			if err != nil {
 				return err

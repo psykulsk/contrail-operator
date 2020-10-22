@@ -31,10 +31,8 @@ func (c *AnalyticsNode) Create(nodeList []*AnalyticsNode, nodeName string, contr
 			vncNode := &contrailTypes.AnalyticsNode{}
 			vncNode.SetFQName("", []string{"default-global-system-config", nodeName})
 			vncNode.SetAnalyticsNodeIpAddress(node.IPAddress)
-			annotations := &contrailTypes.KeyValuePairs{
-				KeyValuePair: contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations),
-			}
-			vncNode.SetAnnotations(annotations)
+			annotations := contrailclient.ConvertMapToContrailKeyValuePairs(node.Annotations)
+			vncNode.SetAnnotations(&annotations)
 			err := contrailClient.Create(vncNode)
 			if err != nil {
 				return err

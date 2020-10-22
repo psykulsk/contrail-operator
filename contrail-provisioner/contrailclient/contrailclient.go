@@ -34,12 +34,12 @@ func ConvertContrailKeyValuePairsToMap(keyValPairs contrailTypes.KeyValuePairs) 
 	return output
 }
 
-func ConvertMapToContrailKeyValuePairs(keyValMap map[string]string) []contrailTypes.KeyValuePair {
-	output := []contrailTypes.KeyValuePair{}
+func ConvertMapToContrailKeyValuePairs(keyValMap map[string]string) contrailTypes.KeyValuePairs {
+	keyVals := []contrailTypes.KeyValuePair{}
 	for key, val := range keyValMap {
-		output = append(output, contrailTypes.KeyValuePair{Key: key, Value: val})
+		keyVals = append(keyVals, contrailTypes.KeyValuePair{Key: key, Value: val})
 	}
-	return output
+	return contrailTypes.KeyValuePairs{KeyValuePair: keyVals}
 }
 
 func GetContrailObjectByName(contrailClient ApiClient, contrailType string, requiredName string) (contrail.IObject, error) {
