@@ -4,8 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 	"github.com/stretchr/testify/assert"
+
+	contrailTypes "github.com/Juniper/contrail-operator/contrail-provisioner/contrail-go-types"
 )
 
 func TestHasRequiredAnnotations(t *testing.T) {
@@ -132,22 +133,20 @@ func TestConvertMapToContrailKeyValuePairs(t *testing.T) {
 		expectedOutput contrailTypes.KeyValuePairs
 	}{
 		{
-			name:  "empty input should result in empty output map",
+			name:  "empty input should result in KeyValuePairs with empty slice",
 			input: map[string]string{},
 			expectedOutput: contrailTypes.KeyValuePairs{
 				KeyValuePair: []contrailTypes.KeyValuePair{},
 			},
 		},
 		{
-			name: "multiple key value pairs should result in map with those pairs",
+			name: "key value pairs should result in KeyValuePairs with those pairs",
 			input: map[string]string{
 				"testkey1": "testval1",
-				"testkey2": "testval2",
 			},
 			expectedOutput: contrailTypes.KeyValuePairs{
 				KeyValuePair: []contrailTypes.KeyValuePair{
 					{Key: "testkey1", Value: "testval1"},
-					{Key: "testkey2", Value: "testval2"},
 				},
 			},
 		},
